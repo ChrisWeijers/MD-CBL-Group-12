@@ -13,16 +13,12 @@ os.makedirs(PLOTS_DIR, exist_ok=True)
 BURGLARY_CSV = os.path.join(DATA_DIR, 'burglary_london.csv')
 EXTRA_CSV    = os.path.join(DATA_DIR, 'extra_data.csv')
 
-# ----------------------------------------
 # Load burglary data
-# ----------------------------------------
 print(f"Loading burglary data from: {BURGLARY_CSV}")
 df = pd.read_csv(BURGLARY_CSV, parse_dates=['Month'], low_memory=False)
 print(f"Data loaded: {df.shape[0]} rows, {df.shape[1]} columns")
 
-# ----------------------------------------
 # 1. Time-series: Monthly burglary counts
-# ----------------------------------------
 monthly = df.groupby('Month').size().rename('Burglary Count')
 fig, ax = plt.subplots(figsize=(12, 5))
 monthly.plot(ax=ax)
@@ -34,9 +30,7 @@ fig.savefig(os.path.join(PLOTS_DIR, 'monthly_burglary_counts.png'))
 plt.close(fig)
 print("Saved plot: monthly_burglary_counts.png")
 
-# ----------------------------------------
 # 2. Bar chart: Top 10 LSOAs by total burglaries
-# ----------------------------------------
 lsoa_counts = df.groupby('LSOA name').size().sort_values(ascending=False).head(10)
 fig, ax = plt.subplots(figsize=(10, 6))
 lsoa_counts.plot(kind='bar', ax=ax)
