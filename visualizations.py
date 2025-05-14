@@ -45,9 +45,7 @@ fig.savefig(os.path.join(PLOTS_DIR, 'top10_lsoas_burglary.png'))
 plt.close(fig)
 print("Saved plot: top10_lsoas_burglary.png")
 
-# ----------------------------------------
 # 3. Boxplot: Seasonal distribution by month
-# ----------------------------------------
 df['Month_Num']  = df['Month'].dt.month
 month_names      = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 df['Month_Name'] = df['Month_Num'].apply(lambda m: month_names[m-1])
@@ -72,69 +70,3 @@ fig.tight_layout()
 fig.savefig(os.path.join(PLOTS_DIR, 'seasonal_boxplot.png'))
 plt.close(fig)
 print("Saved plot: seasonal_boxplot.png")
-
-# ----------------------------------------
-# Load extra socio-economic data
-# ----------------------------------------
-print(f"Loading extra data from: {EXTRA_CSV}")
-df_extra = pd.read_csv(EXTRA_CSV)
-# Parse list strings
-df_extra['hours_worked_list']  = df_extra['hours_worked_percentages'].apply(ast.literal_eval)
-df_extra['qual_list']          = df_extra['qualification_percentages'].apply(ast.literal_eval)
-
-# Extract metrics: full-time 31–48h (index 2), Level 4+ quals (index 5)
-df_extra['pct_fulltime_31_48']  = df_extra['hours_worked_list'].apply(lambda x: x[2])
-df_extra['pct_qual_level4plus'] = df_extra['qual_list'].apply(lambda x: x[5])
-df_extra['pop_density']         = df_extra['pop_density']
-
-# Aggregate burglary counts by LSOA code
-df_counts = df.groupby('LSOA code').size().rename('burglary_count').reset_index()
-
-# Merge datasets
-df_merged = pd.merge(
-    df_counts,
-    df_extra[['LSOA code', 'pop_density', 'pct_fulltime_31_48', 'pct_qual_level4plus']],
-    on='LSOA code',
-    how='inner'
-)
-
-# ----------------------------------------
-# 4. Correlation scatter: Pop density vs burglaries
-# ----------------------------------------
-fig, ax = plt.subplots(figsize=(8, 6))
-ax.scatter(df_merged['pop_density'], df_merged['burglary_count'], s=10, alpha=0.6)
-ax.set_title('Burglary Count vs Population Density')
-ax.set_xlabel('Population Density (people/km²)')
-ax.set_ylabel('Total Burglaries')
-fig.tight_layout()
-fig.savefig(os.path.join(PLOTS_DIR, 'scatter_pop_density_vs_burglary.png'))
-plt.close(fig)
-print("Saved plot: scatter_pop_density_vs_burglary.png")
-
-# ----------------------------------------
-# 5. Correlation scatter: % Level 4+ quals vs burglaries
-# ----------------------------------------
-fig, ax = plt.subplots(figsize=(8, 6))
-ax.scatter(df_merged['pct_qual_level4plus'], df_merged['burglary_count'], s=10, alpha=0.6)
-ax.set_title('Burglary Count vs % with Level 4+ Qualifications')
-ax.set_xlabel('Percent with Level 4+ Qualifications')
-ax.set_ylabel('Total Burglaries')
-fig.tight_layout()
-fig.savefig(os.path.join(PLOTS_DIR, 'scatter_qual_level4_vs_burglary.png'))
-plt.close(fig)
-print("Saved plot: scatter_qual_level4_vs_burglary.png")
-
-# ----------------------------------------
-# 6. Correlation scatter: % Full-time (31-48h) vs burglaries
-# ----------------------------------------
-fig, ax = plt.subplots(figsize=(8, 6))
-ax.scatter(df_merged['pct_fulltime_31_48'], df_merged['burglary_count'], s=10, alpha=0.6)
-ax.set_title('Burglary Count vs % Full-time (31-48h) Workers')
-ax.set_xlabel('Percent Working 31-48 Hours')
-ax.set_ylabel('Total Burglaries')
-fig.tight_layout()
-fig.savefig(os.path.join(PLOTS_DIR, 'scatter_fulltime_vs_burglary.png'))
-plt.close(fig)
-print("Saved plot: scatter_fulltime_vs_burglary.png")
-
-print("All visualizations saved in:", PLOTS_DIR)
