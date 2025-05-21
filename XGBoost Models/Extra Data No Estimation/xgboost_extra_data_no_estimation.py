@@ -1,32 +1,29 @@
-import pandas as pd
 import optuna
+import pandas as pd
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import cross_val_score
-import shap
 import matplotlib.pyplot as plt
+import numpy as np
+import shap
 
-# Load the primary aggregated data CSV
-data_file = 'C:/Users/20231441/Desktop/University/Year 2/Q4/CBL - Crime/Combined & Cleaned Dataset/Combined Dataset/All Crimes London Aggregated (2010 - 2025).csv'
+# Load the aggregated data
+data_file = 'C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/All Crimes London Aggregated (2010 - 2025).csv'
 data = pd.read_csv(data_file)
 
+extra_data_file = 'C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/extra_data_no_estimates.csv'
+extra_data = pd.read_csv(extra_data_file)
+extra_data.rename(columns={'year': 'Year', 'month': 'Month'}, inplace=True)
+extra_data = extra_data[~((extra_data['Year'] == 2025) & (extra_data['Month'] > 2))]
+
 # Filter for burglary cases in the data
-burglary_data = data[data['Crime type'] == 'Burglary'].copy()
-
-# Load the third CSV that I'm using only to get all of the LSOA codes
-lsoa_file = 'C:/Users/20231441/Desktop/University/Year 2/Q4/CBL - Crime/lsoa-data.csv'
-lsoa_data = pd.read_csv(lsoa_file, header=2)
-lsoa_data = lsoa_data[['Codes']]
-lsoa_data.rename(columns={'Codes': 'LSOA code'}, inplace=True)
-
-# Make a dataframe "grid" with every year, month, and LSOA code combination
-unique_year_month = data[['Year', 'Month']].drop_duplicates()
-unique_lsoa = pd.DataFrame(lsoa_data['LSOA code'].unique(), columns=['LSOA code'])
-grid = unique_year_month.merge(unique_lsoa, how='cross')
+pivoted_data = data[data['Crime type'] == 'Burglary'].copy()
+pivoted_data.rename(columns={'Incident Count': 'Burglary'}, inplace=True)
+pivoted_data = pivoted_data.drop(columns=['Crime type'])
 
 # Merge the grid with the actual burglary data
-full_data = pd.merge(grid, burglary_data, on=['Year','Month','LSOA code'], how='left')
-full_data['Incident Count'] = full_data['Incident Count'].fillna(0)
+full_data = pd.merge(extra_data, pivoted_data, on=['Year','Month','LSOA code'], how='left')
+full_data.fillna(0, inplace=True)
 
 # Encode categorical variable for LSOA code while preserving the original
 full_data['LSOA code encoded'] = full_data['LSOA code'].astype('category').cat.codes
@@ -35,14 +32,13 @@ full_data['LSOA code encoded'] = full_data['LSOA code'].astype('category').cat.c
 train_data = full_data[full_data['Year'] <= 2023].copy()
 test_data = full_data[full_data['Year'] >= 2024].copy()
 
-# Prepare features (X) and target (y)
-# Baseline features: only 'Month' and 'LSOA code encoded'
-X_train = train_data[['Month', 'LSOA code encoded']]
-y_train = train_data['Incident Count']
-X_test = test_data[['Month', 'LSOA code encoded']]
-y_test = test_data['Incident Count']
+# Prepare features (X) and target (y) for training and testing
+X_train = train_data.drop(columns=['Year', 'Month', 'LSOA code', 'Burglary'])
+y_train = train_data['Burglary']
+X_test = test_data.drop(columns=['Year', 'Month', 'LSOA code', 'Burglary'])
+y_test = test_data['Burglary']
 
-# Define the objective function for Optuna with baseline parameters
+# Define the objective function for Optuna using sklearn.cross_val_score
 def objective(trial):
     params = {
         'n_estimators': trial.suggest_int('n_estimators', 50, 200),
@@ -56,8 +52,9 @@ def objective(trial):
         'reg_lambda': trial.suggest_float('reg_lambda', 0, 1.0)
     }
     model = XGBRegressor(objective='reg:squarederror', random_state=42, **params)
-    score = cross_val_score(model, X_train, y_train, cv=3, scoring='neg_mean_squared_error').mean()
-    return -score
+    # Compute CV scores using sklearn's cross_val_score
+    cv_scores = cross_val_score(model, X_train, y_train, cv=3, scoring='neg_mean_squared_error')
+    return -cv_scores.mean()
 
 # Create and run the Optuna study
 study = optuna.create_study(direction='minimize')
@@ -70,8 +67,10 @@ print("Best CV MSE:", study.best_value)
 best_model = XGBRegressor(objective='reg:squarederror', random_state=42, **study.best_params)
 best_model.fit(X_train, y_train)
 
-# Make predictions on the test set and compute MSE
+# Make predictions on the test set.
 y_pred = best_model.predict(X_test)
+
+# Compute MSE.
 mse = mean_squared_error(y_test, y_pred)
 print(f"Test MSE: {mse}")
 
@@ -84,8 +83,7 @@ shap.summary_plot(shap_values, X_test, feature_names=X_test.columns)
 
 # Add predictions to the test data and save to CSV
 test_data['Predicted Incident Count'] = y_pred
-test_data['Crime type'].fillna('Burglary', inplace=True)
-test_data.to_csv('burglary_predictions_2024_2025.csv', index=False)
+test_data.to_csv('extra_data_no_estimation_predictions_2024_2025.csv', index=False)
 
 # Save the best model
-best_model.save_model('burglary_xgboost_model.json')
+best_model.save_model('extra_data_no_estimation_xgboost_model.json')

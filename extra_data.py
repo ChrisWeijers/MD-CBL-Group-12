@@ -1,5 +1,33 @@
 import pandas as pd
 
+def flatten_value(x):
+    while isinstance(x, tuple):
+        x = x[0]
+    return x
+
+def extrapolate_linear(group):
+    # Flatten all values in the series
+    group = group.apply(flatten_value)
+    known = group.dropna()
+    if len(known) < 2:
+        return group.interpolate(method='linear', limit_direction='both')
+    # For monthly estimation, compute a "time" value as: time = year + (month-1)/12
+    # The index is assumed to be (LSOA code, year, month)
+    times = group.index.map(lambda idx: idx[1] + (idx[2]-1)/12)
+    known_times = group.dropna().index.map(lambda idx: idx[1] + (idx[2]-1)/12)
+    t_start = known_times.min()
+    t_end = known_times.max()
+    # Find the corresponding start and end values
+    v_start = flatten_value(known[known_times == t_start].iloc[0])
+    v_end = flatten_value(known[known_times == t_end].iloc[0])
+    slope = (v_end - v_start) / (t_end - t_start)
+    filled = group.copy()
+    for idx in group.index:
+        t_val = idx[1] + (idx[2]-1)/12
+        if pd.isna(filled.loc[idx]):
+            filled.loc[idx] = v_start + slope * (t_val - t_start)
+    return filled
+
 # Load the population density dataset
 df_pop_density = pd.read_excel('data/populationdensity20112022.xlsx',
                                sheet_name='Mid-2011 to mid-2022 LSOA 2021')
@@ -32,27 +60,36 @@ df_pop_density = df_pop_density[['LSOA 2021 Code', 'LSOA 2021 Name',
     'Mid-2022: People per Sq Km': '2022_pop_density',
 })
 
-# Create the index for the MultiIndex dataframe
-iterables = [list(df_pop_density['LSOA code']), [n for n in range(2011, 2026)]]
-index = pd.MultiIndex.from_product(iterables, names=["LSOA code", "year"])
+# Create the MultiIndex for monthly data
+lsoa_codes = list(df_pop_density['LSOA code'])
+years = list(range(2011, 2026))
+months = list(range(1, 13))
+iterables = [lsoa_codes, years, months]
+index = pd.MultiIndex.from_product(iterables, names=["LSOA code", "year", "month"])
 
 # Reshape population density data from wide to long format
 df_pop_long = df_pop_density.melt(
     id_vars=['LSOA code', 'LSOA name'],
     value_vars=[col for col in df_pop_density.columns if 'pop_density' in col],
-    var_name='year',
+    var_name='year_pop',
     value_name='pop_density'
 )
+# Convert the 'year_pop' strings to int (extract year)
+df_pop_long['year'] = df_pop_long['year_pop'].str.extract(r'(\d{4})').astype(int)
+df_pop_long.drop(columns='year_pop', inplace=True)
+# Set MultiIndex; note these rows only have yearly data so we assign month=1
+df_pop_long['month'] = 1
+df_pop_long.set_index(['LSOA code', 'year', 'month'], inplace=True)
 
-# Convert year to int
-df_pop_long['year'] = df_pop_long['year'].str.extract(r'(\d{4})').astype(int)
-
-# Set MultiIndex
-df_pop_long.set_index(['LSOA code', 'year'], inplace=True)
-
-# Assign the population density to the empty MultiIndex DataFrame
+# Create the full DataFrame; missing months (and even years) will be estimated.
 print('Adding population density...')
 df = pd.DataFrame(df_pop_long['pop_density'], index=index)
+# Interpolate/extrapolate population density
+print('Inter- and extrapolating pop_density...')
+df['pop_density'] = df.groupby(level=0)['pop_density'].transform(
+    lambda group: extrapolate_linear(group)
+)
+df['pop_density'] = df['pop_density'].round(2)
 
 # Load the hours worked datasets
 df_hours_2011 = pd.read_csv('data/hours_worked_2011.csv')
@@ -95,18 +132,24 @@ df_hours_2021['year'] = 2021
 df_qual_2011['year'] = 2011
 df_qual_2021['year'] = 2021
 
-# Combine the seperate year datasets
+# For the purposes of monthly interpolation, assign month=1 to the yearly data
+df_hours_2011['month'] = 1
+df_hours_2021['month'] = 1
+df_qual_2011['month'] = 1
+df_qual_2021['month'] = 1
+
+# Combine the separate year datasets
 df_hours = pd.concat([df_hours_2011, df_hours_2021], ignore_index=True)
 df_qual = pd.concat([df_qual_2011, df_qual_2021], ignore_index=True)
 
-# Reshape qualification levels from wide to long format
+# Reshape hours worked and qualifications from wide to long format
 df_hours_long = df_hours.melt(
-    id_vars=['LSOA code', 'year'],
+    id_vars=['LSOA code', 'year', 'month'],
     var_name='hours_worked',
     value_name='percentage'
 )
 df_qual_long = df_qual.melt(
-    id_vars=['LSOA code', 'year'],
+    id_vars=['LSOA code', 'year', 'month'],
     var_name='qualification',
     value_name='percentage'
 )
@@ -125,14 +168,14 @@ df_qual_long['qualification'] = pd.Categorical(
 )
 
 # Pivot to get hours worked and qualification levels as columns again
-df_hours_pivot = df_hours_long.pivot_table(index=['LSOA code', 'year'],
+df_hours_pivot = df_hours_long.pivot_table(index=['LSOA code', 'year', 'month'],
                                    columns='hours_worked',
                                    values='percentage',
-                                           observed=False)
-df_qual_pivot = df_qual_long.pivot_table(index=['LSOA code', 'year'],
+                                   observed=False)
+df_qual_pivot = df_qual_long.pivot_table(index=['LSOA code', 'year', 'month'],
                                    columns='qualification',
                                    values='percentage',
-                                         observed=False)
+                                   observed=False)
 
 # Add the data to the MultiIndex dataframe for interpolating
 hours_cols = df_hours_pivot.columns
@@ -145,32 +188,34 @@ for col in qual_cols:
 # Make sure the df is sorted
 df = df.sort_index()
 
-# Interpolate and extrapolating and normalizing and rounding, two times to ensure the best normalization
-print('Inter- and extrapolating...')
-df['pop_density'] = df.groupby(level=0)['pop_density'].transform(
-    lambda group: group.interpolate(method='linear', limit_direction='both')
-)
+# Interpolate/extrapolate, normalize and round for hours worked
+print('Inter- and extrapolating hours worked...')
 df[hours_cols] = df[hours_cols].groupby(level=0).transform(
-    lambda group: group.interpolate(method='linear', limit_direction='both')
+    lambda group: extrapolate_linear(group)
 )
 df[hours_cols] = df[hours_cols].div(df[hours_cols].sum(axis=1), axis=0) * 100
 df[hours_cols] = df[hours_cols].round(2)
 df[hours_cols] = df[hours_cols].div(df[hours_cols].sum(axis=1), axis=0) * 100
 df[hours_cols] = df[hours_cols].round(2)
-print('Adding hours worked...')
-df['hours_worked_percentages'] = df[hours_cols].values.tolist()
-df[qual_cols] = df[qual_cols].groupby(level=0).transform(
-    lambda group: group.interpolate(method='linear', limit_direction='both')
-)
-df[qual_cols] = df[qual_cols].div(df[qual_cols].sum(axis=1), axis=0) * 100
-df[qual_cols] = df[qual_cols].round(2)
-df[qual_cols] = df[qual_cols].div(df[qual_cols].sum(axis=1), axis=0) * 100
-df[qual_cols] = df[qual_cols].round(2)
-print('Adding qualifications...')
-df['qualification_percentages'] = df[qual_cols].values.tolist()
-df = df.drop(columns=hours_cols)
-df = df.drop(columns=qual_cols)
 
-# Print info of final dataframe to ensure everything is done correctly
+print('Processing hours worked percentages...')
+# Keep the original hours worked columns (each as a separate column)
+
+# Interpolate/extrapolate, normalize and round for qualifications
+print('Inter- and extrapolating qualifications...')
+df[qual_cols] = df[qual_cols].groupby(level=0).transform(
+    lambda group: extrapolate_linear(group)
+)
+df[qual_cols] = df[qual_cols].div(df[qual_cols].sum(axis=1), axis=0) * 100
+df[qual_cols] = df[qual_cols].round(2)
+df[qual_cols] = df[qual_cols].div(df[qual_cols].sum(axis=1), axis=0) * 100
+df[qual_cols] = df[qual_cols].round(2)
+
+print('Processing qualification percentages...')
+# Instead of merging into an array, keep the separate qualification columns
+
+print(df.head(20))
 print(df.info())
+
 df.to_csv('data/extra_data.csv')
+print(df.head(10))
