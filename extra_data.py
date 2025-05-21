@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def flatten_value(x):
     while isinstance(x, tuple):
@@ -185,6 +186,23 @@ qual_cols = df_qual_pivot.columns
 for col in qual_cols:
     df[col] = df_qual_pivot[col]
 
+def convert_all_nan_list_to_nan(lst):
+    return np.nan if all(pd.isna(x) for x in lst) else lst
+
+df_standard = df.copy()
+
+# Convert hours worked
+df_standard['hours_worked_percentages'] = df[hours_cols].values.tolist()
+df_standard['hours_worked_percentages'] = df_standard['hours_worked_percentages'].apply(convert_all_nan_list_to_nan)
+
+# Convert qualification
+df_standard['qualification_percentages'] = df[qual_cols].values.tolist()
+df_standard['qualification_percentages'] = df_standard['qualification_percentages'].apply(convert_all_nan_list_to_nan)
+
+# Drop original columns
+df_standard = df_standard.drop(columns=hours_cols)
+df_standard = df_standard.drop(columns = qual_cols)
+df_standard.to_csv('data/no_estimation_data.csv')
 # Make sure the df is sorted
 df = df.sort_index()
 
@@ -211,11 +229,4 @@ df[qual_cols] = df[qual_cols].round(2)
 df[qual_cols] = df[qual_cols].div(df[qual_cols].sum(axis=1), axis=0) * 100
 df[qual_cols] = df[qual_cols].round(2)
 
-print('Processing qualification percentages...')
-# Instead of merging into an array, keep the separate qualification columns
-
-print(df.head(20))
-print(df.info())
-
 df.to_csv('data/extra_data.csv')
-print(df.head(10))
