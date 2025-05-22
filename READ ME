@@ -3,3 +3,4 @@
 3th. Download: https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london called statistical-lsoa2021-boundaries-london-borough.zip (the second one from the top)
 4th. Run Dashboard_GeoJSONCombine.py with your paths of the statistical-lsoa2021-boundaries-london-borough.zip
 5th. Put the absolute paths of Burglary Londen (2010 - 2025).csv and the London_lsoa_combined.geojson into the Dashboard.py and run the final command that pops up in red into the terminal
+6th
