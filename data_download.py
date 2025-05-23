@@ -18,5 +18,9 @@ gdown.download('https://drive.google.com/uc?id=1XoGf1mKn8DHKNxZqmiXjIUqArA3noFa_
                'data/qualifications_2021.csv', quiet=False)
 gdown.download('https://docs.google.com/uc?id=1WkT88aJtY2plxCFqaujOu43KyqVHA1il',
                'data/populationdensity20112022.xlsx', quiet=False)
+gdown.download('https://docs.google.com/uc?id=1A0qWJSlDgnMVfndozf0zaHWs4nIkeOp5',
+               'data/File_1_ID_2015_Index_of_Multiple_Deprivation.xlsx', quiet=False)
+gdown.download('https://docs.google.com/uc?id=1Y2zB8qolWDAk7B5-yBfWr6048kZrP9MN',
+               'data/File_1_IMD2019_Index_of_Multiple_Deprivation.xlsx', quiet=False)
 
 

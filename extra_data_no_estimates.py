@@ -1,29 +1,57 @@
 import pandas as pd
 from itertools import product
 
-# 1. Load and reshape pop density 2011 & 2021 -------------------------------------------
+# 1. Load and reshape pop density 2011 until 2022 -------------------------------------------
 df_pop = (
     pd.read_excel(
         'data/populationdensity20112022.xlsx',
         sheet_name='Mid-2011 to mid-2022 LSOA 2021',
-        usecols=[
-            'LSOA 2021 Code', 'LSOA 2021 Name',
-            'Mid-2011: People per Sq Km',
-            'Mid-2021: People per Sq Km',
-        ]
+        usecols=['LSOA 2021 Code',
+       'Mid-2011: People per Sq Km',
+       'Mid-2012: People per Sq Km',
+       'Mid-2013: People per Sq Km',
+       'Mid-2014: People per Sq Km',
+       'Mid-2015: People per Sq Km',
+       'Mid-2016: People per Sq Km',
+       'Mid-2017: People per Sq Km',
+       'Mid-2018: People per Sq Km',
+       'Mid-2019: People per Sq Km',
+       'Mid-2020: People per Sq Km',
+       'Mid-2021: People per Sq Km',
+       'Mid-2022: People per Sq Km']
     )
     .rename(columns={
-        'LSOA 2021 Code': 'LSOA code',
-        'LSOA 2021 Name': 'LSOA name',
-        'Mid-2011: People per Sq Km': 'pop_density_2011',
-        'Mid-2021: People per Sq Km': 'pop_density_2021',
-    })
+    'LSOA 2021 Code': 'LSOA code',
+    'Mid-2011: People per Sq Km': '2011_pop_density',
+    'Mid-2012: People per Sq Km': '2012_pop_density',
+    'Mid-2013: People per Sq Km': '2013_pop_density',
+    'Mid-2014: People per Sq Km': '2014_pop_density',
+    'Mid-2015: People per Sq Km': '2015_pop_density',
+    'Mid-2016: People per Sq Km': '2016_pop_density',
+    'Mid-2017: People per Sq Km': '2017_pop_density',
+    'Mid-2018: People per Sq Km': '2018_pop_density',
+    'Mid-2019: People per Sq Km': '2019_pop_density',
+    'Mid-2020: People per Sq Km': '2020_pop_density',
+    'Mid-2021: People per Sq Km': '2021_pop_density',
+    'Mid-2022: People per Sq Km': '2022_pop_density',
+})
 )
 
 # Melt population density into long form for years 2011 and 2021
 df_pop_long = df_pop.melt(
-    id_vars=['LSOA code', 'LSOA name'],
-    value_vars=['pop_density_2011', 'pop_density_2021'],
+    id_vars=['LSOA code'],
+    value_vars=['2011_pop_density',
+    '2012_pop_density',
+    '2013_pop_density',
+    '2014_pop_density',
+    '2015_pop_density',
+    '2016_pop_density',
+    '2017_pop_density',
+    '2018_pop_density',
+    '2019_pop_density',
+    '2020_pop_density',
+    '2021_pop_density',
+    '2022_pop_density'],
     var_name='year_pop',
     value_name='pop_density'
 )
@@ -131,7 +159,69 @@ df = df.merge(
     how='left'
 )
 
-# 6. Finalize and save ------------------------------------------------------------------
+# 6. Load & prepare IMD for 2015 & 2019
+df_imd_2015 = (
+    pd.read_excel(
+                'data/File_1_ID_2015_Index_of_Multiple_Deprivation.xlsx',
+                sheet_name='IMD 2015',
+                usecols=['LSOA code (2011)',
+                        'Index of Multiple Deprivation (IMD) Rank (where 1 is most deprived)',
+                        'Index of Multiple Deprivation (IMD) Decile (where 1 is most deprived 10% of LSOAs)',
+                        ]
+                ).rename(columns={'LSOA code (2011)': 'LSOA code',
+                                  'Index of Multiple Deprivation (IMD) Rank (where 1 is most deprived)': 'imd_rank',
+                                  'Index of Multiple Deprivation (IMD) Decile (where 1 is most deprived 10% of LSOAs)': 'imd_decile'})
+               )
+df_imd_2019 = (
+    pd.read_excel(
+                'data/File_1_IMD2019_Index_of_Multiple_Deprivation.xlsx',
+                sheet_name='IMD2019',
+                usecols=['LSOA code (2011)',
+                        'Index of Multiple Deprivation (IMD) Rank',
+                        'Index of Multiple Deprivation (IMD) Decile',
+                        ]
+                ).rename(columns={'LSOA code (2011)': 'LSOA code',
+                                  'Index of Multiple Deprivation (IMD) Rank': 'imd_rank',
+                                  'Index of Multiple Deprivation (IMD) Decile': 'imd_decile'
+                                  })
+               )
+df_imd_2015['year'] = 2015
+df_imd_2019['year'] = 2019
+
+df_imd = pd.concat([df_imd_2015, df_imd_2019], ignore_index=True)
+
+imd_long = df_imd.melt(
+    id_vars=['LSOA code', 'year'],
+    var_name='imd',
+    value_name='imd_score'
+)
+df_imd_pivot = imd_long.pivot_table(
+    index=['LSOA code', 'year'],
+    columns='imd',
+    values='imd_score'
+).reset_index()
+
+df = df.merge(
+    df_imd_pivot,
+    on=['LSOA code', 'year'],
+    how='left'
+)
+
+# 7. Load London daylight hours
+df_daylight = (pd.read_excel('data/london_daylight.xlsx',
+                            usecols=['Month', 'Hours of daylight']).rename(columns={'Month': 'month'}))
+
+df_daylight['Hours of daylight'] = df_daylight['Hours of daylight'].str.replace(' h', '').apply(
+    lambda x: int(x.split(':')[0]) + int(x.split(':')[1]) / 60
+).round(2)
+
+df = df.merge(
+    df_daylight,
+    on=['month'],
+    how='left'
+)
+
+# 7. Finalize and save ------------------------------------------------------------------
 df = df.sort_values(['LSOA code', 'year', 'month'])
 df.to_csv('data/extra_data_no_estimates.csv', index=False)
 print(df.head())
