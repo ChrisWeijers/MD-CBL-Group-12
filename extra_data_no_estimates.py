@@ -58,6 +58,8 @@ df_pop_long = df_pop.melt(
 # Extract year from column name
 df_pop_long['year'] = df_pop_long['year_pop'].str.extract(r"(\d{4})").astype(int)
 df_pop_long = df_pop_long[['LSOA code', 'year', 'pop_density']]
+# Set MultiIndex; note these rows only have yearly data so we assign month=1
+df_pop_long['month'] = 1
 
 # 2. Create full flat grid DataFrame -----------------------------------------------------
 lsoas  = df_pop['LSOA code'].unique()
@@ -73,7 +75,7 @@ df = full_grid.copy()
 # 3. Merge population density onto every row where year matches -------------------------
 df = df.merge(
     df_pop_long,
-    on=['LSOA code', 'year'],
+    on=['LSOA code', 'year', 'month'],
     how='left'
 )
 
@@ -84,6 +86,7 @@ def load_hours(path, year):
     dfh = dfh.drop(columns=drop_cols, errors='ignore')
     dfh = dfh.rename(columns={'mnemonic': 'LSOA code'})
     dfh['year'] = year
+    dfh['month'] = 1
     return dfh
 
 dfh_2011 = load_hours('data/hours_worked_2011.csv', 2011)
@@ -92,19 +95,19 @@ df_hours = pd.concat([dfh_2011, dfh_2021], ignore_index=True)
 
 # Melt and pivot hours, then merge onto df
 hours_long = df_hours.melt(
-    id_vars=['LSOA code', 'year'],
+    id_vars=['LSOA code', 'year', 'month'],
     var_name='hours_cat',
     value_name='pct_hours'
 )
 df_hours_pivot = hours_long.pivot_table(
-    index=['LSOA code', 'year'],
+    index=['LSOA code', 'year', 'month'],
     columns='hours_cat',
     values='pct_hours'
 ).reset_index()
 
 df = df.merge(
     df_hours_pivot,
-    on=['LSOA code', 'year'],
+    on=['LSOA code', 'year', 'month'],
     how='left'
 )
 
@@ -114,6 +117,7 @@ def load_quals(path, year, drop_cols, rename_map):
     dfq = dfq.drop(columns=drop_cols, errors='ignore')
     dfq = dfq.rename(columns=rename_map)
     dfq['year'] = year
+    dfq['month'] = 1
     return dfq
 
 # Qualification mappings
@@ -143,19 +147,19 @@ df_quals = pd.concat([dfq_2011, dfq_2021], ignore_index=True)
 
 # Melt and pivot quals, then merge onto df
 quals_long = df_quals.melt(
-    id_vars=['LSOA code', 'year'],
+    id_vars=['LSOA code', 'year', 'month'],
     var_name='qual_level',
     value_name='pct_qual'
 )
 df_quals_pivot = quals_long.pivot_table(
-    index=['LSOA code', 'year'],
+    index=['LSOA code', 'year', 'month'],
     columns='qual_level',
     values='pct_qual'
 ).reset_index()
 
 df = df.merge(
     df_quals_pivot,
-    on=['LSOA code', 'year'],
+    on=['LSOA code', 'year', 'month'],
     how='left'
 )
 
@@ -186,24 +190,26 @@ df_imd_2019 = (
                                   })
                )
 df_imd_2015['year'] = 2015
+df_imd_2015['month'] = 1
 df_imd_2019['year'] = 2019
+df_imd_2019['month'] = 1
 
 df_imd = pd.concat([df_imd_2015, df_imd_2019], ignore_index=True)
 
 imd_long = df_imd.melt(
-    id_vars=['LSOA code', 'year'],
+    id_vars=['LSOA code', 'year', 'month'],
     var_name='imd',
     value_name='imd_score'
 )
 df_imd_pivot = imd_long.pivot_table(
-    index=['LSOA code', 'year'],
+    index=['LSOA code', 'year', 'month'],
     columns='imd',
     values='imd_score'
 ).reset_index()
 
 df = df.merge(
     df_imd_pivot,
-    on=['LSOA code', 'year'],
+    on=['LSOA code', 'year', 'month'],
     how='left'
 )
 

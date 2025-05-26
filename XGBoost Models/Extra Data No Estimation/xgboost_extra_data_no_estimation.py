@@ -6,23 +6,23 @@ from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plt
 import numpy as np
 import shap
+from pathlib import Path
 
 # Load the aggregated data
-data_file = 'C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/All Crimes London Aggregated (2010 - 2025).csv'
-data = pd.read_csv(data_file)
+base_dir = Path(__file__).resolve().parent.parent.parent
+data_file = base_dir / 'data/burglary_london.csv'
+df = pd.read_csv(data_file)
+df[['Year', 'Month']] = df['Month'].str.split('-', n=1, expand=True)
+data = df.groupby(['Year', 'Month', 'LSOA code']).size().reset_index(name='Burglary')
 
-extra_data_file = 'C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/extra_data_no_estimates.csv'
+# Load the extra data without estimations
+extra_data_file = base_dir / 'data/extra_data_no_estimates.csv'
 extra_data = pd.read_csv(extra_data_file)
 extra_data.rename(columns={'year': 'Year', 'month': 'Month'}, inplace=True)
 extra_data = extra_data[~((extra_data['Year'] == 2025) & (extra_data['Month'] > 2))]
 
-# Filter for burglary cases in the data
-pivoted_data = data[data['Crime type'] == 'Burglary'].copy()
-pivoted_data.rename(columns={'Incident Count': 'Burglary'}, inplace=True)
-pivoted_data = pivoted_data.drop(columns=['Crime type'])
-
 # Merge the grid with the actual burglary data
-full_data = pd.merge(extra_data, pivoted_data, on=['Year','Month','LSOA code'], how='left')
+full_data = pd.merge(extra_data, data, on=['Year','Month','LSOA code'], how='left')
 full_data.fillna(0, inplace=True)
 
 # Encode categorical variable for LSOA code while preserving the original
