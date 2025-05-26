@@ -6,7 +6,7 @@ import numpy as np
 from shapely.geometry import Polygon, MultiPolygon
 
 #Paths
-geojson_path = "data/london_lsoa_combined.geojson". #geojson file location
+geojson_path = "data/london_lsoa_combined.geojson" #geojson file location
 data_path = "C:\\Users\\yongj\\OneDrive\\Desktop\\4CBLW00-20_Group_12\\data\\burglary_london.csv" #ofc later change to the path of the predicted stuff
 
 #Load GeoJSON boundaries
