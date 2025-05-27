@@ -33,7 +33,6 @@ app.layout = html.Div([
     html.Div(id='slider-output-container')
 ])
 
-
 @app.callback(
     Output('slider-output-container', 'children'),
     Input('my-slider', 'value'))
@@ -46,6 +45,11 @@ def update_output(value):
     Output("map", "figure"),
     Input("map", "id"))
 def display_choropleth(map):
+    Output("graph", "figure"),
+    Input("graph", "id"),
+    Input('graph', 'clickData'))
+
+def display_choropleth(graphid, graphclick):
     fig = px.choropleth(merged,
                         geojson=merged_json,
                         locations="lsoa21cd",
@@ -55,7 +59,9 @@ def display_choropleth(map):
                         projection="mercator")
     fig.update_geos(fitbounds="locations", visible=False)
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-    fig.show()
+
+    if graphclick is not None:
+        print(f"loc: {graphclick['points'][0]['location']}\ncount: {graphclick['points'][0]['z']}")
     return fig
 
 app.run(debug=True)

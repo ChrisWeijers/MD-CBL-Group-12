@@ -1,7 +1,7 @@
 import optuna
 import pandas as pd
 from xgboost import XGBRegressor
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_score  # using the sklearn function
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,6 +20,12 @@ extra_data_file = base_dir / 'data/extra_data.csv'
 extra_data = pd.read_csv(extra_data_file)
 extra_data.rename(columns={'year': 'Year', 'month': 'Month'}, inplace=True)
 extra_data = extra_data[~((extra_data['Year'] == 2025) & (extra_data['Month'] > 2))]
+
+# Ensure consistent data types for merging keys
+extra_data['Year'] = extra_data['Year'].astype(int)
+extra_data['Month'] = extra_data['Month'].astype(int)
+data['Year'] = data['Year'].astype(int)
+data['Month'] = data['Month'].astype(int)
 
 # Merge the grid with the actual burglary data
 full_data = pd.merge(extra_data, data, on=['Year','Month','LSOA code'], how='left')
@@ -72,7 +78,8 @@ y_pred = best_model.predict(X_test)
 
 # Compute MSE.
 mse = mean_squared_error(y_test, y_pred)
-print(f"Test MSE: {mse}")
+r2 = r2_score(y_test, y_pred)
+print(f"Test MSE: {mse}\nTest R2: {r2}")
 
 # SHAP Analysis
 explainer = shap.TreeExplainer(best_model)
