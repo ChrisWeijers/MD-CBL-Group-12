@@ -61,7 +61,7 @@ def objective(trial):
 
 # Create and run the Optuna study
 study = optuna.create_study(direction='minimize')
-study.optimize(objective, n_trials=20, show_progress_bar=True)
+study.optimize(objective, n_trials=50, show_progress_bar=True)
 
 print("Best hyperparameters:", study.best_params)
 print("Best CV MSE:", study.best_value)
