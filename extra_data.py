@@ -1,5 +1,5 @@
 import pandas as pd
-import numpy as np
+from tqdm import tqdm
 
 def flatten_value(x):
     while isinstance(x, tuple):
@@ -47,10 +47,12 @@ qual_cols = ['No qualifications', 'Level 1', 'Level 2', 'Apprenticeship', 'Level
 imd_cols = ['imd_rank', 'imd_decile']
 
 # Interpolate/extrapolate
-print('Inter- and extrapolating data...')
 all_cols = ['pop_density'] + hours_cols + qual_cols + imd_cols
-df[all_cols] = df[all_cols].groupby(level=0).transform(
-    lambda group: extrapolate_linear(group)
+# Register tqdm with pandas
+tqdm.pandas(desc="Interpolating groups")
+
+df[all_cols] = df.groupby(level=0)[all_cols].progress_apply(
+    lambda group: group.apply(extrapolate_linear)
 )
 
 # Normalizing and rounding the necessary columns
