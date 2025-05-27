@@ -10,7 +10,7 @@ import json
 
 #Paths
 geojson_path = r"C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\london_lsoa_combined.geojson" #geojson file location
-data_path = r"C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\Burglary London (2010 - 2025).csv" #ofc later change to the path of the predicted stuff
+data_path = r"C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\burglary_london.csv" #ofc later change to the path of the predicted stuff
 #Load GeoJSON boundaries
 gdf = gpd.read_file(geojson_path)
 #Load burglary data
@@ -25,16 +25,27 @@ merged_json = json.loads(merged.to_json())
 app = Dash(__name__)
 app.layout = html.Div([
     html.H4('SOmething to show'),
-    dcc.Graph(id="graph"),
+    dcc.Graph(id="map"),
+    dcc.Slider(0, 2000, 100,
+               value=10,
+               id='my-slider'
+               ),
+    html.Div(id='slider-output-container')
 ])
 
+
+@app.callback(
+    Output('slider-output-container', 'children'),
+    Input('my-slider', 'value'))
+def update_output(value):
+    return 'You have selected "{}"'.format(value)
 
 
 
 @app.callback(
-    Output("graph", "figure"),
-    Input("graph", "id"))
-def display_choropleth(graph):
+    Output("map", "figure"),
+    Input("map", "id"))
+def display_choropleth(map):
     fig = px.choropleth(merged,
                         geojson=merged_json,
                         locations="lsoa21cd",
