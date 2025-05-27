@@ -28,7 +28,7 @@ Run these scripts in the order they appear to get the desired outcome.
     - average hours of worked in a week,
     - qualifications (education level),
     - Index of Multiple Deprivation (IMD),
-    - average montly hours of daylight.
+    - average number of daylight hours per day for each month.
 - `extra_data.py`: Linearly interpolates missing months in external data.
 
 ### 3. Burglary Prediction Models
