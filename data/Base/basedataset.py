@@ -2,10 +2,11 @@ import pandas as pd
 from itertools import product
 
 # 1. Load the LSOA dataset
-lsoa_df = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/LSOA changes/london_lsoa11_lsoa21_lad22_ward_24.csv")
-lsoa_df = lsoa_df.drop(columns=["LSOA11NM", "LSOA21NM", "LAD22CD", "LAD22NM", "WD24CD", "WD24NM"], errors="ignore")
+lsoa_df = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/LSOA changes/london_lsoa11_lsoa21_lad22_ward24.csv")
+lsoa_df = lsoa_df.drop(columns=["LSOA11NM", "LAD22CD", "LAD22NM", "WD24CD", "WD24NM"], errors="ignore")
 lsoa_df = lsoa_df.rename(columns={"LSOA11CD": "LSOA code 2011"})
 lsoa_df = lsoa_df.rename(columns={"LSOA21CD": "LSOA code 2021"})
+lsoa_df = lsoa_df.rename(columns={"LSOA21NM": "LSOA name 2021"})
 lsoa_df = lsoa_df.rename(columns={"CHGIND": "Change Indicator"})
 
 # 2. Build a Year-Month grid:
@@ -21,7 +22,7 @@ year_month = pd.concat([grid_full, grid_partial], ignore_index=True)
 
 # 3. Cross join the lsoa_df with the Year-Month grid.
 baseline = lsoa_df.merge(year_month, how="cross")
-baseline = baseline.sort_values(["LSOA code 2021", "Year", "Month"]).reset_index(drop=True)
+baseline = baseline.sort_values(["LSOA code 2021", "LSOA name 2021", "Year", "Month"]).reset_index(drop=True)
 
 # 4. Save the baseline dataset to CSV
 baseline.to_csv("baseline_dataset.csv", index=False)

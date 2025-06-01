@@ -30,7 +30,7 @@ def extrapolate_linear(group):
     return filled
 
 # Load the population density dataset
-df_pop_density = pd.read_excel('data/populationdensity20112022.xlsx',
+df_pop_density = pd.read_excel('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Population density/populationdensity20112022.xlsx',
                                sheet_name='Mid-2011 to mid-2022 LSOA 2021')
 df_pop_density = df_pop_density[['LSOA 2021 Code', 'LSOA 2021 Name',
        'Mid-2011: People per Sq Km',
@@ -93,8 +93,8 @@ df['pop_density'] = df.groupby(level=0)['pop_density'].transform(
 df['pop_density'] = df['pop_density'].round(2)
 
 # Load the hours worked datasets
-df_hours_2011 = pd.read_csv('data/hours_worked_2011.csv')
-df_hours_2021 = pd.read_csv('data/hours_worked_2021.csv')
+df_hours_2011 = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Hours worked/hours_worked_2011.csv')
+df_hours_2021 = pd.read_csv('data/Hours worked/hours_worked_2021.csv')
 df_hours_2011 = df_hours_2011.drop(columns='2011 super output area - lower layer').rename(columns={
     'mnemonic': 'LSOA code',
 })
@@ -103,8 +103,8 @@ df_hours_2021 = df_hours_2021.drop(columns='2021 super output area - lower layer
 })
 
 # Load the qualifications datasets
-df_qual_2011 = pd.read_csv('data/qualifications_2011.csv')
-df_qual_2021 = pd.read_csv('data/qualifications_2021.csv')
+df_qual_2011 = pd.read_csv('data/Education/qualifications_2011.csv')
+df_qual_2021 = pd.read_csv('data/Education/qualifications_2021.csv')
 df_qual_2011 = df_qual_2011.drop(columns=[
     '2011 super output area - lower layer', 'All categories: Highest level of qualification'
 ]).rename(columns={
@@ -202,7 +202,7 @@ df_standard['qualification_percentages'] = df_standard['qualification_percentage
 # Drop original columns
 df_standard = df_standard.drop(columns=hours_cols)
 df_standard = df_standard.drop(columns = qual_cols)
-df_standard.to_csv('data/no_estimation_data.csv')
+# df_standard.to_csv('no_estimation_data.csv')
 # Make sure the df is sorted
 df = df.sort_index()
 
@@ -229,4 +229,4 @@ df[qual_cols] = df[qual_cols].round(2)
 df[qual_cols] = df[qual_cols].div(df[qual_cols].sum(axis=1), axis=0) * 100
 df[qual_cols] = df[qual_cols].round(2)
 
-df.to_csv('data/extra_data.csv')
+df.to_csv('extra_data.csv')

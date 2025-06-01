@@ -27,7 +27,7 @@ lsoa_to_ward = lsoa_to_ward.drop_duplicates(subset=["LSOA21CD"])
 london_lsoas = london_lsoas.merge(lsoa_to_ward, on="LSOA21CD", how="left")
 
 # 5. Save the resulting DataFrame to CSV
-london_lsoas.to_csv("london_lsoas.csv", index=False)
+london_lsoas.to_csv("london_lsoa11_lsoa21_lad22_ward24.csv", index=False)
 
 unique_count = london_lsoas["LSOA21CD"].nunique()
 print(f"Number of unique LSOA21CD entries: {unique_count}")
