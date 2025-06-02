@@ -79,6 +79,7 @@ app.layout = html.Div([
     children=[dl.TileLayer(), geojson, colorbar, info], style={"height": "60vh", "width": "60vw"}, center=[56, 10], zoom=6
     ),
     dcc.Graph(id="graph"),
+    html.Button('Submit', id='submit-val', n_clicks=0)
     ]
 )
 
@@ -87,17 +88,22 @@ app.layout = html.Div([
 def info_hover(feature):
     return get_info(feature)
 
-@app.callback(Output("graph", "figure"), Input("geojson", "clickData"))
-def update_line_chart(feature):
-    if feature is not None:
-        df_ = df[feature['properties']['lsoa21cd'] == df['LSOA code']]
-        df_ = df_.groupby('Month').size().reset_index(name='Burglary Count')
-        fig = px.line(df_, x=df_['Month'], y=df_['Burglary Count'], markers=True, labels={'x': "Months", 'y': "Burglaries"}, title='Monthly burglaries of selected LSOA')
-        return fig
-    else:
-        df_ = df.groupby('Month').size().reset_index(name='Burglary Count')
-        fig = px.line(df_, x=df_['Month'], y=df_['Burglary Count'], markers=True, labels={'x': "Months", 'y': "Burglaries"}, title='Monthly burglaries of London')
-        return fig
+@app.callback([Output("graph", "figure"),
+              Output('submit-val', 'n_clicks')],
+              Input("geojson", "clickData"),
+              Input('submit-val', 'n_clicks'))
+def update_line_chart(feature, nclicks):
+    if nclicks >= 0:
+        print(nclicks)
+        if feature is not None:
+            df_ = df[feature['properties']['lsoa21cd'] == df['LSOA code']]
+            df_ = df_.groupby('Month').size().reset_index(name='Burglary Count')
+            fig = px.line(df_, x=df_['Month'], y=df_['Burglary Count'], markers=True, labels={'x': "Months", 'y': "Burglaries"}, title='Monthly burglaries of selected LSOA')
+            return fig
+        else:
+            df_ = df.groupby('Month').size().reset_index(name='Burglary Count')
+            fig = px.line(df_, x=df_['Month'], y=df_['Burglary Count'], markers=True, labels={'x': "Months", 'y': "Burglaries"}, title='Monthly burglaries of London')
+            return fig, 0
 
 if __name__ == "__main__":
     app.run()
