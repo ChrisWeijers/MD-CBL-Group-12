@@ -24,16 +24,6 @@ population_density = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Docu
 precipitation = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Precipitation/precipitation_finalized.csv')
 
 # Join all datasets
-# data = pd.merge(baseline, burglary_lag, on=['Year','Month','LSOA code 2021'], how='left')
-# data = pd.merge(data, covid, on=['Year','Month','LSOA code 2021'], how='left')
-# data = pd.merge(data, crimes, on=['Year','Month','LSOA code 2021'], how='left')
-# data = pd.merge(data, education, on=['Year','Month','LSOA code 2021'], how='left')
-# data = pd.merge(data, hours_worked, on=['Year','Month','LSOA code 2021'], how='left')
-# data = pd.merge(data, imd, on=['Year','Month','LSOA code 2021'], how='left')
-# data = pd.merge(data, population, on=['Year','Month','LSOA code 2021'], how='left')
-# data = pd.merge(data, population_density, on=['Year','Month','LSOA code 2021'], how='left')
-# data = pd.merge(data, precipitation, on=['Year','Month','LSOA code 2021'], how='left')
-
 data = baseline.merge(burglary_lag, on=['Year','Month','LSOA code 2021'], how='left')
 data = data.merge(covid, on=['Year', 'Month', 'LSOA code 2021'], how='left')
 data = data.merge(crimes, on=['Year', 'Month', 'LSOA code 2021'], how='left')
@@ -60,9 +50,9 @@ train_data = data[data['Year'] <= 2023].copy()
 test_data = data[data['Year'] >= 2024].copy()
 
 # Prepare features (X) and target (y) for training and testing
-X_train = train_data.drop(columns=['Year', 'Month', 'LSOA code 2021', 'Burglary count'])
+X_train = train_data.drop(columns=['LSOA code 2021', 'Burglary count'])
 y_train = train_data['Burglary count']
-X_test = test_data.drop(columns=['Year', 'Month', 'LSOA code 2021', 'Burglary count'])
+X_test = test_data.drop(columns=['LSOA code 2021', 'Burglary count'])
 y_test = test_data['Burglary count']
 
 # Define the objective function for Optuna using sklearn.cross_val_score

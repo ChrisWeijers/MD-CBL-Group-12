@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 # Load the crimes_finalized dataset
 crimes = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Crimes/crimes_finalized.csv')
@@ -30,8 +31,14 @@ crimes['Burglary (past 3 month average)'] = crimes.groupby('LSOA code 2021')['Bu
 )
 crimes['Burglary (past 3 month average)'] = crimes['Burglary (past 3 month average)'].round(2)
 
+# If Year = 2011 and Month = 1 set the smoothed columns to NaN
+mask = (crimes["Year"] == 2011) & (crimes["Month"] == 1)
+cols = ["Burglary (past 3 month average)", "Burglary (past 6 month average)", "Burglary (past 12 month average)"]
+crimes.loc[mask, cols] = np.nan
+
 # Clean up the data
 crimes.drop(columns=['Burglary count'], inplace=True, errors='ignore')
+crimes.reset_index(drop=True, inplace=True)
 
 # Save the lag dataset
 crimes.to_csv('burglary_lag_finalized.csv', index=False)
