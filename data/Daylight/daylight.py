@@ -36,10 +36,16 @@ df = df.drop(columns=["year_month"])
 df = df.rename(columns={"daylight_minutes": "Daylight minutes"})
 df = df[["Year", "Month", "Daylight minutes"]]
 
+# Convert daylight minutes into daylight hours, round to 0 decimal points, and update column name
+df["Daylight hours"] = (df["Daylight minutes"] / 60).round(0).astype(int)
+df = df.drop(columns=["Daylight minutes"])
+df = df[["Year", "Month", "Daylight hours"]]
+
 # Format the daylight data per LSOA per year per month
-baseline = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv")  # adjust file name/path as needed
+baseline = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv",
+                        dtype={"LSOA code 2021": str})
 merged = baseline.merge(df, on=["Year", "Month"], how="left")
-merged = merged.drop(columns=["LSOA code 2011", "Change Indicator"], errors="ignore")
+merged = merged.drop(columns=["LSOA code 2011", "LSOA name 2021", "Change Indicator"], errors="ignore")
 
 # Save the merged dataset to CSV
 merged.to_csv("daylight_finalized.csv", index=False)

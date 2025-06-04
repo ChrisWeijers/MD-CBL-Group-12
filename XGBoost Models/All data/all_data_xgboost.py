@@ -16,23 +16,34 @@ baseline = baseline.drop_duplicates(subset=['LSOA code 2021', 'Year', 'Month'], 
 burglary_lag = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Burglary lag/burglary_lag_finalized.csv')
 covid = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Covid-19/covid-19_finalized.csv')
 crimes = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Crimes/crimes_finalized.csv')
+daylight = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Daylight/daylight_finalized.csv')
 education = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Education/education_finalized.csv')
+holidays = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Holidays and celebrations/holidays_finalized.csv')
 hours_worked = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Hours worked/hours_worked_finalized.csv')
+household_income = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Household income/household_income_finalized.csv')
 imd = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/IMD/imd_finalized.csv')
+landuse = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Land use/landuse_finalized.csv')
 population = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Population/population_finalized.csv')
 population_density = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Population density/population_density_finalized.csv')
 precipitation = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Precipitation/precipitation_finalized.csv')
+smoothed_burglaries = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Smoothed burglaries/smoothed_burglaries_finalized.csv')
 
 # Join all datasets
 data = baseline.merge(burglary_lag, on=['Year','Month','LSOA code 2021'], how='left')
 data = data.merge(covid, on=['Year', 'Month', 'LSOA code 2021'], how='left')
 data = data.merge(crimes, on=['Year', 'Month', 'LSOA code 2021'], how='left')
+data = data.merge(daylight, on=['Year', 'Month', 'LSOA code 2021'], how='left')
 data = data.merge(education, on=['Year', 'Month', 'LSOA code 2021'], how='left')
+data = data.merge(holidays, on=['Year', 'Month', 'LSOA code 2021'], how='left')
 data = data.merge(hours_worked, on=['Year', 'Month', 'LSOA code 2021'], how='left')
+data = data.merge(household_income, on=['Year', 'Month', 'LSOA code 2021'], how='left')
 data = data.merge(imd, on=['Year', 'Month', 'LSOA code 2021'], how='left')
+data = data.merge(landuse, on=['Year', 'Month', 'LSOA code 2021'], how='left')
 data = data.merge(population, on=['Year', 'Month', 'LSOA code 2021'], how='left')
 data = data.merge(population_density, on=['Year', 'Month', 'LSOA code 2021'], how='left')
 data = data.merge(precipitation, on=['Year', 'Month', 'LSOA code 2021'], how='left')
+data = data.merge(smoothed_burglaries, on=['Year', 'Month', 'LSOA code 2021'], how='left')
+
 data = data.drop_duplicates(subset=['LSOA code 2021', 'Year', 'Month'], keep='first')
 
 # Encode categorical variable for LSOA code while preserving the original
@@ -44,6 +55,10 @@ data = data[((data["Year"] < 2025) | ((data["Year"] == 2025) & (data["Month"] <=
 # Rename columns for XGBoost compatibility
 data.columns = data.columns.astype(str).str.replace(r'<', 'less than', regex=True)
 data.columns = data.columns.astype(str).str.replace(r'>', 'more than', regex=True)
+
+# Idk which one but there is a dataset which isn't properly formatted
+invalid_cols = ['LSOA code 2011', 'LSOA name 2021', 'Change Indicator']
+data = data.drop(columns=invalid_cols, errors='ignore')
 
 # Split the data into training (2010-2023) and testing (2024-2025) sets
 train_data = data[data['Year'] <= 2023].copy()

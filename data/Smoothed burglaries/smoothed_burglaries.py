@@ -204,7 +204,7 @@ merged["Smoothed burglaries (3 months)"] = merged["Smoothed burglaries (3 months
 
 # Save the final merged table
 merged.reset_index(drop=True, inplace=True)
-merged.to_csv("smoothed_expected_burglaries_finalized.csv", index=False)
+merged.to_csv("smoothed_burglaries_finalized.csv", index=False)
 
 # 2D choropleth plot
 plot_df_2d = exp_long_all[exp_long_all["date"] == plot_date][["LSOA code 2021", "Smoothed burglaries (12 months)"]]

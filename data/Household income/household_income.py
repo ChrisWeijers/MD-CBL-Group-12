@@ -31,13 +31,13 @@ hi_2020 = load_household_income('annualincome2020.xlsx', 2020)
 df_hi = pd.concat([hi_2012, hi_2014, hi_2016, hi_2018, hi_2020])
 
 # Load the LSOA to MSOA lookup file.
-msoa_lsoa = pd.read_csv('OAs_to_LSOAs_to_MSOAs_to_LEP_to_LAD_(April_2023)_Lookup_in_England.csv',
+msoa_lsoa = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Mapping/OAs_to_LSOAs_to_MSOAs_to_LEP_to_LAD_(April_2023)_Lookup_in_England.csv',
                         usecols=['LSOA21CD', 'MSOA21CD'])
 msoa_lsoa = msoa_lsoa.drop_duplicates().groupby('MSOA21CD', group_keys=True)[['LSOA21CD']].apply(lambda x: x)
 
 # Load the MSOA 2011 to MSOA 2021 lookup file.
 all_msoas = pd.read_csv(
-    'MSOA_(2011)_to_MSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales_-5379446518771769392.csv')
+    'C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Mapping/MSOA_(2011)_to_MSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales_-5379446518771769392.csv')
 all_msoas = all_msoas.drop(columns=["LAD22NMW", "ObjectId"], errors="ignore")
 
 # Filter to only Greater London area LSOAs.
@@ -105,6 +105,9 @@ def interpolate_imd(group):
 income_interp = income.groupby(by='LSOA code 2021', group_keys=False).apply(interpolate_imd)
 income_interp.drop(columns=['time'], inplace=True)
 
+# Clean up the dataframe
+income_interp = income_interp.rename(columns={'Total annual income (£)': 'Total annual income (GBP)'})
+
 # Save the estimated dataset to CSV.
-income_interp.to_csv('household_income.csv', index=False)
+income_interp.to_csv('household_income_finalized.csv', index=False)
 print(income_interp.head())
