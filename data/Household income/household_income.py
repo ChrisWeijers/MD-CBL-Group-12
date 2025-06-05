@@ -2,21 +2,33 @@ import pandas as pd
 import numpy as np
 from scipy.interpolate import interp1d
 from pathlib import Path
-
+import re
+from functools import reduce
 
 # Create function for loading the household income data.
 def load_household_income(file_path, year, weekly=False):
+    income_list = []
     if not weekly:
-        df = pd.read_excel(file_path, sheet_name='Total annual income',
-                           usecols=['MSOA code', 'Total annual income (£)'])
-        df['Year'] = year
-        df['Month'] = 4
-        return df
-    df = pd.read_excel(file_path, sheet_name='Total weekly income', usecols=['MSOA code', 'Total weekly income (£)'])
+        sheet_names = ['Total annual income', 'Net annual income', 'Net income before housing costs',
+                       'Net income after housing costs']
+    else:
+        sheet_names = ['Total weekly income', 'Net weekly income', 'Net income before housing costs',
+                       'Net income after housing costs']
+    for sheet in sheet_names:
+        df = pd.read_excel(file_path, sheet_name=sheet,
+                            usecols=lambda col: col == "MSOA code" or bool(re.search("income", col, flags=re.IGNORECASE)))
+        income_list.append(df)
+    df = reduce(lambda  left,right: pd.merge(left,right,on=['MSOA code'],
+                                            how='outer'), income_list)
     df['Year'] = year
     df['Month'] = 4
-    df['Total annual income (£)'] = df['Total weekly income (£)'] * 52
-    df.drop(columns=['Total weekly income (£)'], inplace=True)
+    if weekly:
+        columns_old = ['Total weekly income (£)', 'Net weekly income (£)', 'Net income before housing costs (£)',
+                   'Net income after housing costs (£)']
+        columns_new = ['Total annual income (£)', 'Net annual income (£)', 'Net annual income before housing costs (£)',
+                   'Net annual income after housing costs (£)']
+        df[columns_new] = df[columns_old] * 52
+        df.drop(columns=columns_old, inplace=True)
     return df
 
 
@@ -31,13 +43,13 @@ hi_2020 = load_household_income('annualincome2020.xlsx', 2020)
 df_hi = pd.concat([hi_2012, hi_2014, hi_2016, hi_2018, hi_2020])
 
 # Load the LSOA to MSOA lookup file.
-msoa_lsoa = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Mapping/OAs_to_LSOAs_to_MSOAs_to_LEP_to_LAD_(April_2023)_Lookup_in_England.csv',
+msoa_lsoa = pd.read_csv('OAs_to_LSOAs_to_MSOAs_to_LEP_to_LAD_(April_2023)_Lookup_in_England.csv',
                         usecols=['LSOA21CD', 'MSOA21CD'])
 msoa_lsoa = msoa_lsoa.drop_duplicates().groupby('MSOA21CD', group_keys=True)[['LSOA21CD']].apply(lambda x: x)
 
 # Load the MSOA 2011 to MSOA 2021 lookup file.
 all_msoas = pd.read_csv(
-    'C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Mapping/MSOA_(2011)_to_MSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales_-5379446518771769392.csv')
+    'MSOA_(2011)_to_MSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales_-5379446518771769392.csv')
 all_msoas = all_msoas.drop(columns=["LAD22NMW", "ObjectId"], errors="ignore")
 
 # Filter to only Greater London area LSOAs.
@@ -59,12 +71,15 @@ hi_mapped = pd.merge(df_hi, london_msoas, left_on='MSOA code', right_on='MSOA11C
 # Split the data into two groups
 # Rows with indicator "U - Unchanged", "S - Split" or "X - Other changes" (which in this case is just one split)
 data_USX = hi_mapped[hi_mapped['CHGIND'].isin(['U', 'S', 'X'])]
-data_USX_reduced = data_USX[['MSOA21CD', 'Year', 'Month', 'Total annual income (£)']].copy()
+data_USX_reduced = data_USX[['MSOA21CD', 'Year', 'Month', 'Total annual income (£)',
+                             'Net annual income (£)', 'Net annual income before housing costs (£)',
+                   'Net annual income after housing costs (£)']].copy()
 
 # Rows with indicator "M - Merged"
 data_M = hi_mapped[hi_mapped['CHGIND'] == 'M']
 data_M_avg = (
-    data_M.groupby(['MSOA21CD', 'Year', 'Month'])['Total annual income (£)']
+    data_M.groupby(['MSOA21CD', 'Year', 'Month'])[['Total annual income (£)', 'Net annual income (£)',
+    'Net annual income before housing costs (£)', 'Net annual income after housing costs (£)']]
     .mean()
     .reset_index()
 )
@@ -87,27 +102,35 @@ income = baseline.merge(df_lsoa_income, on=['LSOA code 2021', 'Year', 'Month'], 
 
 # Estimate the 'Total annual income (£)' for the missing months
 income['time'] = income['Year'] * 12 + income['Month']
-income_var = 'Total annual income (£)'
+income_vars = ['Total annual income (£)', 'Net annual income (£)',
+    'Net annual income before housing costs (£)', 'Net annual income after housing costs (£)']
 
 
-def interpolate_imd(group):
-    group = group.sort_values('time')
-    mask = group[income_var].notna()
-    if mask.sum() >= 2:
-        x_known = group.loc[mask, 'time']
-        y_known = group.loc[mask, income_var]
-        f = interp1d(x_known, y_known, kind='linear', fill_value='extrapolate', bounds_error=False)
-        group[income_var] = f(group['time'])
-    return np.round(group, 0)
+def interpolate_extrapolate(group):
+    group = group.sort_values("time")
+    for col in income_vars:
+        # Get available (non-missing) pairs
+        mask = group[col].notna()
+        if mask.sum() >= 2:
+            x_known = group.loc[mask, "time"]
+            y_known = group.loc[mask, col]
+            # f will perform linear interpolation and extrapolation as needed.
+            f = interp1d(x_known, y_known, kind="linear", fill_value="extrapolate", bounds_error=False)
+            group[col] = f(group["time"])
+    return group
 
 
 # Apply the interpolation.
-income_interp = income.groupby(by='LSOA code 2021', group_keys=False).apply(interpolate_imd)
+income_interp = income.groupby(by='LSOA code 2021', group_keys=False).apply(interpolate_extrapolate)
 income_interp.drop(columns=['time'], inplace=True)
 
 # Clean up the dataframe
-income_interp = income_interp.rename(columns={'Total annual income (£)': 'Total annual income (GBP)'})
+income_interp = income_interp.rename(columns={'Total annual income (£)': 'Total annual income (GBP)',
+    'Net annual income (£)': 'Net annual income (GBP)',
+    'Net annual income before housing costs (£)': 'Net income before housing costs (GBP)',
+    'Net annual income after housing costs (£)': 'Net income after housing costs (GBP)'
+                                              })
 
 # Save the estimated dataset to CSV.
 income_interp.to_csv('household_income_finalized.csv', index=False)
-print(income_interp.head())
+print(income_interp.info())
