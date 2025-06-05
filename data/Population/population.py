@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.interpolate import interp1d
+from pathlib import Path
 
 # 1. Load Population Data from Excel sheets
 pop_files = [
@@ -80,8 +81,9 @@ pop_june = pop_june[pop_columns]
 print("Step 3 done")
 
 # 4. Merge the Population Data with the Baseline Dataset
-
-baseline = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv")
+data_dir = Path(__file__).resolve().parent.parent
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
+baseline = pd.read_csv(baseline_file)
 baseline["LSOA code 2021"] = baseline["LSOA code 2021"].astype(str)
 pop_june["LSOA code 2021"] = pop_june["LSOA code 2021"].astype(str)
 population = baseline.merge(pop_june, on=["LSOA code 2021", "Year", "Month"], how="left")

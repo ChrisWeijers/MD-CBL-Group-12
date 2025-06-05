@@ -1,7 +1,11 @@
 import pandas as pd
+from pathlib import Path
+
+data_dir = Path(__file__).resolve().parent.parent
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
 
 # Load the baseline dataset
-baseline = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv")
+baseline = pd.read_csv(baseline_file)
 
 # Create the dummy variable for Covid-19
 baseline["Covid-19 (boolean)"] = (((baseline["Year"] > 2020) | ((baseline["Year"] == 2020) & (baseline["Month"] >= 3)))).astype(int)

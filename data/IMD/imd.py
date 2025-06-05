@@ -1,9 +1,12 @@
 import pandas as pd
 import numpy as np
 from scipy.interpolate import interp1d
+from pathlib import Path
 
 # Load the baseline dataset
-baseline = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv")
+data_dir = Path(__file__).resolve().parent.parent
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
+baseline = pd.read_csv(baseline_file)
 
 # Load, clean and map IMD data points
 # IMD data for 2008-06

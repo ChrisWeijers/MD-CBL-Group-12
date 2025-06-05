@@ -3,6 +3,7 @@ import pandas as pd
 from dateutil.easter import easter
 import holidays
 import calendar
+from pathlib import Path
 
 # Define the date range
 start_date = datetime.date(2011, 1, 1)
@@ -205,7 +206,9 @@ for col in ["Public Holiday", "Celebration", "Sporting Event"]:
         counts[col] = 0
 
 # Merge the counts with the baseline dataset
-baseline = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv')
+data_dir = Path(__file__).resolve().parent.parent
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
+baseline = pd.read_csv(baseline_file)
 baseline = baseline[["LSOA code 2021", "Year", "Month"]].drop_duplicates()
 
 final = pd.merge(baseline, counts, on=["Year", "Month"], how="left")

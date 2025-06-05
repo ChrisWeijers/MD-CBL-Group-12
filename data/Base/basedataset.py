@@ -1,8 +1,12 @@
 import pandas as pd
 from itertools import product
+from pathlib import Path
+
+data_dir = Path(__file__).resolve().parent.parent
+lsoa_file = data_dir / "LSOA changes/london_lsoa11_lsoa21_lad22_ward24.csv"
 
 # 1. Load the LSOA dataset
-lsoa_df = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/LSOA changes/london_lsoa11_lsoa21_lad22_ward24.csv")
+lsoa_df = pd.read_csv(lsoa_file)
 lsoa_df = lsoa_df.drop(columns=["LSOA11NM", "LAD22CD", "LAD22NM", "WD24CD", "WD24NM"], errors="ignore")
 lsoa_df = lsoa_df.rename(columns={"LSOA11CD": "LSOA code 2011"})
 lsoa_df = lsoa_df.rename(columns={"LSOA21CD": "LSOA code 2021"})

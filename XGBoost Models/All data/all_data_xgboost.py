@@ -1,32 +1,35 @@
 import optuna
 import pandas as pd
 from xgboost import XGBRegressor
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_score
 import matplotlib.pyplot as plt
 import numpy as np
 import shap
+from pathlib import Path
 
 # Load the baseline dataset
-baseline = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv')
+data_dir = Path(__file__).resolve().parent.parent.parent / 'data/'
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
+baseline = pd.read_csv(baseline_file)
 baseline.drop(columns=['LSOA code 2011', 'LSOA name 2021', 'Change Indicator'], inplace=True, errors='ignore')
 baseline = baseline.drop_duplicates(subset=['LSOA code 2021', 'Year', 'Month'], keep='first')
 
 # Load the other datasets
-burglary_lag = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Burglary lag/burglary_lag_finalized.csv')
-covid = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Covid-19/covid-19_finalized.csv')
-crimes = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Crimes/crimes_finalized.csv')
-daylight = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Daylight/daylight_finalized.csv')
-education = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Education/education_finalized.csv')
-holidays = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Holidays and celebrations/holidays_finalized.csv')
-hours_worked = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Hours worked/hours_worked_finalized.csv')
-household_income = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Household income/household_income_finalized.csv')
-imd = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/IMD/imd_finalized.csv')
-landuse = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Land use/landuse_finalized.csv')
-population = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Population/population_finalized.csv')
-population_density = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Population density/population_density_finalized.csv')
-precipitation = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Precipitation/precipitation_finalized.csv')
-smoothed_burglaries = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Smoothed burglaries/smoothed_burglaries_finalized.csv')
+burglary_lag = pd.read_csv(data_dir / 'Burglary lag/burglary_lag_finalized.csv')
+covid = pd.read_csv(data_dir / 'Covid-19/covid-19_finalized.csv')
+crimes = pd.read_csv(data_dir / 'Crimes/crimes_finalized.csv')
+daylight = pd.read_csv(data_dir / 'Daylight/daylight_finalized.csv')
+education = pd.read_csv(data_dir / 'Education/education_finalized.csv')
+holidays = pd.read_csv(data_dir / 'Holidays and celebrations/holidays_finalized.csv')
+hours_worked = pd.read_csv(data_dir / 'Hours worked/hours_worked_finalized.csv')
+household_income = pd.read_csv(data_dir / 'Household income/household_income_finalized.csv')
+imd = pd.read_csv(data_dir / 'IMD/imd_finalized.csv')
+landuse = pd.read_csv(data_dir / 'Land use/landuse_finalized.csv')
+population = pd.read_csv(data_dir / 'Population/population_finalized.csv')
+population_density = pd.read_csv(data_dir / 'Population density/population_density_finalized.csv')
+precipitation = pd.read_csv(data_dir / 'Precipitation/precipitation_finalized.csv')
+smoothed_burglaries = pd.read_csv(data_dir / 'Smoothed burglaries/smoothed_burglaries_finalized.csv')
 
 # Join all datasets
 data = baseline.merge(burglary_lag, on=['Year','Month','LSOA code 2021'], how='left')
@@ -59,6 +62,7 @@ data.columns = data.columns.astype(str).str.replace(r'>', 'more than', regex=Tru
 # Idk which one but there is a dataset which isn't properly formatted
 invalid_cols = ['LSOA code 2011', 'LSOA name 2021', 'Change Indicator']
 data = data.drop(columns=invalid_cols, errors='ignore')
+print(data.info())
 
 # Split the data into training (2010-2023) and testing (2024-2025) sets
 train_data = data[data['Year'] <= 2023].copy()
@@ -104,7 +108,8 @@ y_pred = best_model.predict(X_test)
 
 # Compute MSE.
 mse = mean_squared_error(y_test, y_pred)
-print(f"Test MSE: {mse}")
+r2_score = r2_score(y_test, y_pred)
+print(f"Test MSE: {mse}\nTest R^2: {r2_score}")
 
 # SHAP Analysis
 explainer = shap.TreeExplainer(best_model)

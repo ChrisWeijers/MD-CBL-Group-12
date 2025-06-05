@@ -58,8 +58,8 @@ def load_hours(path, year):
     dfh['year'] = year
     return dfh
 
-dfh_2011 = load_hours('data/hours_worked_2011.csv', 2011)
-dfh_2021 = load_hours('data/hours_worked_2021.csv', 2021)
+dfh_2011 = load_hours('data/Hours worked/hours_worked_2011.csv', 2011)
+dfh_2021 = load_hours('data/Hours worked/hours_worked_2021.csv', 2021)
 df_hours = pd.concat([dfh_2011, dfh_2021], ignore_index=True)
 
 # Melt and pivot hours, then merge onto df
@@ -109,8 +109,8 @@ map21 = {
     'Other qualifications': 'Other',
 }
 
-dfq_2011 = load_quals('data/qualifications_2011.csv', 2011, drop11, map11)
-dfq_2021 = load_quals('data/qualifications_2021.csv', 2021, drop21, map21)
+dfq_2011 = load_quals('data/Education/qualifications_2011.csv', 2011, drop11, map11)
+dfq_2021 = load_quals('data/Education/qualifications_2021.csv', 2021, drop21, map21)
 df_quals = pd.concat([dfq_2011, dfq_2021], ignore_index=True)
 
 # Melt and pivot quals, then merge onto df

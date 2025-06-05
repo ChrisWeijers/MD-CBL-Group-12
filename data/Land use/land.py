@@ -2,9 +2,11 @@ import os
 import glob
 import geopandas as gpd
 import pandas as pd
+from pathlib import Path
 
 # Path to the folder containing the borough shapefiles
-borough_folder = r'C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/LSOA boundaries/LB_shp'
+data_dir = Path(__file__).resolve().parent.parent
+borough_folder = data_dir / 'LSOA boundaries/LB_shp'
 
 # Load all shapefiles in the borough folder and combine them
 shapefile_pattern = os.path.join(borough_folder, "*.shp")
@@ -171,8 +173,8 @@ cols.remove("LSOA code 2021")
 pivot = pivot[["LSOA code 2021"] + cols]
 
 # Load the baseline dataset
-baseline_csv = r"C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv"
-baseline = pd.read_csv(baseline_csv, dtype={"LSOA code 2021": str})
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
+baseline = pd.read_csv(baseline_file, dtype={"LSOA code 2021": str})
 
 # Merge the landuse data with the baseline dataset
 merged = baseline.merge(pivot, on="LSOA code 2021", how="left")

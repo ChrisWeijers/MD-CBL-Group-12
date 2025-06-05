@@ -1,4 +1,5 @@
 import pandas as pd
+from pathlib import Path
 
 # Read the original CSV file
 df = pd.read_csv("precipitation.csv")
@@ -36,9 +37,11 @@ monthly["Number of days (> 1mm of precipitation)"] = monthly["Number of days (> 
 # monthly.to_csv("precipitation_monthly.csv", index=False)
 
 # Format the precipitation data in pre LSOA per year per month
-baseline = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv")  # adjust file name/path as needed
+data_dir = Path(__file__).resolve().parent.parent
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
+baseline = pd.read_csv(baseline_file)  # adjust file name/path as needed
 merged = baseline.merge(monthly, on=["Year", "Month"], how="left")
-merged = merged.drop(columns=["LSOA code 2011", "Change Indicator"], errors="ignore")
+merged = merged.drop(columns=["LSOA code 2011", 'LSOA name 2021', "Change Indicator"], errors="ignore")
 
 # Save the merged dataset to CSV
 merged.to_csv("precipitation_finalized.csv", index=False)

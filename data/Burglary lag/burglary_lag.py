@@ -1,8 +1,12 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
+
+data_dir = Path(__file__).resolve().parent.parent
+crimes_file = data_dir / 'Crimes/crimes_finalized.csv'
 
 # Load the crimes_finalized dataset
-crimes = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Crimes/crimes_finalized.csv')
+crimes = pd.read_csv(crimes_file)
 crimes = crimes[['LSOA code 2021', 'Year', 'Month', 'Burglary count']]
 
 # Sort the data by LSOA code, Year and Month

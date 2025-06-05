@@ -7,11 +7,13 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.tri as mtri
 from tqdm import tqdm
+from pathlib import Path
 
 # Load the necessary data files
-shp_folder = "C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/LSOA boundaries/LB_shp"
-crimes_csv = "C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Crimes/crimes_finalized.csv"
-baseline_csv = "C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv"
+data_dir = Path(__file__).resolve().parent.parent
+baseline_csv = data_dir / 'Base/baseline_dataset.csv'
+shp_folder = data_dir / 'LSOA boundaries/LB_shp'
+crimes_csv = data_dir / 'Crimes/crimes_finalized.csv'
 
 # Set the data for plotting
 plot_date = pd.to_datetime("2023-06-01")

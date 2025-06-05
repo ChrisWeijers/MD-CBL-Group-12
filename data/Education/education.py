@@ -1,5 +1,9 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
+
+data_dir = Path(__file__).resolve().parent.parent
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
 
 # Load the qualifications data for 2011 and clean it up
 qual_2011 = pd.read_csv('qualifications_2011.csv')
@@ -17,7 +21,7 @@ qual_2011 = qual_2011.rename(columns={
 })
 
 # Load the baseline dataset for mapping LSOA codes from 2011 to 2021
-mapping = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv')
+mapping = pd.read_csv(baseline_file)
 
 # Merge the mapping onto the education 2011 data.
 qual_2011_mapped = pd.merge(qual_2011, mapping, on='LSOA code 2011', how='left')

@@ -3,12 +3,16 @@ import glob
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Point
+from pathlib import Path
+
+data_dir = Path(__file__).resolve().parent.parent
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
 
 # Set the root folder that contains the yyyy-mm folders for the crime CSV files
-root_dir = r'Original Dataset'  # Update this to your crime CSV root folder
+root_dir = '/Users/chrisweijers/Library/CloudStorage/OneDrive-TUEindhoven/Bachelor Data Science/Year 2/Data Challenge 2/police_data'  # Update this to your crime CSV root folder
 
 # Path to the folder containing the borough shapefiles (each borough file contains its LSOAs)
-borough_folder = r'C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/LSOA boundaries/LB_shp'
+borough_folder = data_dir / 'LSOA boundaries/LB_shp'
 
 # Load all shapefiles in the borough folder and combine them
 shapefile_pattern = os.path.join(borough_folder, "*.shp")
@@ -91,7 +95,7 @@ pivoted_data.rename(
 )
 
 # Load the baseline dataset
-baseline = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv')
+baseline = pd.read_csv(baseline_file)
 baseline = baseline[['LSOA code 2021', 'Year', 'Month']]
 baseline = baseline.sort_values(["LSOA code 2021", "Year", "Month"])
 

@@ -2,6 +2,10 @@ from astral import LocationInfo
 from astral.sun import sun
 import datetime
 import pandas as pd
+from pathlib import Path
+
+data_dir = Path(__file__).resolve().parent.parent
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
 
 # 1. Set up the London location
 london = LocationInfo("London", "England", "Europe/London", 51.503579, -0.131917)
@@ -42,7 +46,7 @@ df = df.drop(columns=["Daylight minutes"])
 df = df[["Year", "Month", "Daylight hours"]]
 
 # Format the daylight data per LSOA per year per month
-baseline = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv",
+baseline = pd.read_csv(baseline_file,
                         dtype={"LSOA code 2021": str})
 merged = baseline.merge(df, on=["Year", "Month"], how="left")
 merged = merged.drop(columns=["LSOA code 2011", "LSOA name 2021", "Change Indicator"], errors="ignore")

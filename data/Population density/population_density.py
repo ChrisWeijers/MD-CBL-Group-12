@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.interpolate import interp1d
+from pathlib import Path
 
 # Load the population density data
 density_raw = pd.read_excel("populationdensity20112022.xlsx", sheet_name="Mid-2011 to mid-2022 LSOA 2021")
@@ -21,7 +22,9 @@ for yr in range(2011, 2023):
 density_all = pd.concat(density_list, ignore_index=True)
 
 # Merge with the baseline dataset that contains every LSOA, Year & Month combination
-baseline = pd.read_csv("C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv")
+data_dir = Path(__file__).resolve().parent.parent
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
+baseline = pd.read_csv(baseline_file)
 density_combined = baseline.merge(density_all, on=["LSOA code 2021", "Year", "Month"], how="left")
 
 # Create a continuous time variable
