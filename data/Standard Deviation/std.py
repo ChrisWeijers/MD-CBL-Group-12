@@ -1,8 +1,11 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 # Load the burglary data
-crimes = pd.read_csv(r"C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Crimes/crimes_finalized.csv", usecols=["LSOA code 2021", "Year", "Month", "Burglary count"])
+data_dir = Path(__file__).resolve().parent.parent
+crimes_file = data_dir / 'Crimes/crimes_finalized.csv'
+crimes = pd.read_csv(crimes_file, usecols=["LSOA code 2021", "Year", "Month", "Burglary count"])
 
 # Make a date variable
 crimes["date"] = pd.to_datetime(crimes[["Year", "Month"]].assign(DAY=1))
@@ -38,7 +41,9 @@ for df in [std3_df, std6_df, std12_df]:
     df["Month"] = df["date"].dt.month
 
 # Load your baseline dataframe
-baseline = pd.read_csv(r"C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Base/baseline_dataset.csv", dtype={"LSOA code 2021": str, "Year": int, "Month": int})
+baseline_file = data_dir / 'Base/baseline_dataset.csv'
+baseline = pd.read_csv(
+    baseline_file, dtype={"LSOA code 2021": str, "Year": int, "Month": int})
 baseline = baseline.drop_duplicates(subset=["LSOA code 2021", "Year", "Month"])
 
 # 8) Merge stds into the baseline

@@ -18,27 +18,13 @@ crimes['Burglary count (-2 month)'] = crimes.groupby('LSOA code 2021')['Burglary
 crimes['Burglary count (-3 month)'] = crimes.groupby('LSOA code 2021')['Burglary count'].shift(3)
 
 # Create a column for the average burglary count over the past year
-crimes['Burglary (past 12 month average)'] = crimes.groupby('LSOA code 2021')['Burglary count'].transform(
-    lambda x: x.shift(1).rolling(window=12, min_periods=1).mean()
-)
-crimes['Burglary (past 12 month average)'] = crimes['Burglary (past 12 month average)'].round(2)
+crimes['Burglary (12 month EMA)'] = crimes['Burglary count'].shift(1).ewm(span=12, min_periods=1, adjust=False).mean().round(2)
 
 # Create a column for the average burglary count over the past 6 months
-crimes['Burglary (past 6 month average)'] = crimes.groupby('LSOA code 2021')['Burglary count'].transform(
-    lambda x: x.shift(1).rolling(window=6, min_periods=1).mean()
-)
-crimes['Burglary (past 6 month average)'] = crimes['Burglary (past 6 month average)'].round(2)
+crimes['Burglary (6 month EMA)'] = crimes['Burglary count'].shift(1).ewm(span=6, min_periods=1, adjust=False).mean().round(2)
 
 # Create a column for the average burglary count over the past 3 months
-crimes['Burglary (past 3 month average)'] = crimes.groupby('LSOA code 2021')['Burglary count'].transform(
-    lambda x: x.shift(1).rolling(window=3, min_periods=1).mean()
-)
-crimes['Burglary (past 3 month average)'] = crimes['Burglary (past 3 month average)'].round(2)
-
-# If Year = 2011 and Month = 1 set the smoothed columns to NaN
-mask = (crimes["Year"] == 2011) & (crimes["Month"] == 1)
-cols = ["Burglary (past 3 month average)", "Burglary (past 6 month average)", "Burglary (past 12 month average)"]
-crimes.loc[mask, cols] = np.nan
+crimes['Burglary (3 month EMA)'] = crimes['Burglary count'].shift(1).ewm(span=3, min_periods=1, adjust=False).mean().round(2)
 
 # Clean up the data
 crimes.drop(columns=['Burglary count'], inplace=True, errors='ignore')
