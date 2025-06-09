@@ -9,7 +9,7 @@ data_dir = Path(__file__).resolve().parent.parent
 baseline_file = data_dir / 'Base/baseline_dataset.csv'
 
 # Set the root folder that contains the yyyy-mm folders for the crime CSV files
-root_dir = '/Users/chrisweijers/Library/CloudStorage/OneDrive-TUEindhoven/Bachelor Data Science/Year 2/Data Challenge 2/police_data'  # Update this to your crime CSV root folder
+root_dir = 'Original Dataset'  # Update this to your crime CSV root folder
 
 # Path to the folder containing the borough shapefiles (each borough file contains its LSOAs)
 borough_folder = data_dir / 'LSOA boundaries/LB_shp'
