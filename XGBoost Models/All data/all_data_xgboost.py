@@ -80,7 +80,7 @@ y_train = train_data['Burglary count'].astype(int)
 X_test = test_data.drop(columns=['LSOA code 2021', 'Burglary count', 'Year', 'Month'])
 y_test = test_data['Burglary count'].astype(int)
 
-# Define the objective function for Optuna using sklearn.cross_val_score
+# Define the objective function for Optuna using TimeSeriesSplit
 def objective(trial):
     params = {
         'objective': trial.suggest_categorical('objective', ['reg:squarederror', 'count:poisson']),
@@ -88,15 +88,12 @@ def objective(trial):
         'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.2, log=True),
         'reg_alpha': trial.suggest_float('reg_alpha', 0, 1.0),
         'reg_lambda': trial.suggest_float('reg_lambda', 0, 1.0),
-        'booster': trial.suggest_categorical('booster', ['gbtree', 'gblinear']),
+        'subsample': trial.suggest_float('subsample', 0.8, 1.0),
+        'max_depth': trial.suggest_int('max_depth', 2, 10),
+        'min_child_weight': trial.suggest_float('min_child_weight', 1, 10),
+        'gamma': trial.suggest_float('gamma', 0, 1.0),
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0, 1.0),
     }
-
-    if params['booster'] == 'gbtree':
-        params['subsample'] = trial.suggest_float('subsample', 0.8, 1.0)
-        params['min_child_weight'] = trial.suggest_float('min_child_weight', 1, 10)
-        params['colsample_bytree'] = trial.suggest_float('colsample_bytree', 0.7, 1.0)
-        params['gamma'] = trial.suggest_float('gamma', 0, 0.5)
-        params['max_depth'] = trial.suggest_int('max_depth', 3, 10)
 
     tscv = TimeSeriesSplit(n_splits=5)
     cv_scores = []

@@ -109,6 +109,11 @@ crime_cols = [col for col in full_data.columns if col not in baseline_cols]
 mask = ((full_data['Year'] < 2025) | ((full_data['Year'] == 2025) & (full_data['Month'] <= 2)))
 full_data.loc[mask, crime_cols] = full_data.loc[mask, crime_cols].fillna(0)
 
+crime_cols.remove('Burglary count')
+for col in crime_cols:
+    full_data[f'{col} (-1 month)'] = full_data[col].shift(1)
+full_data.drop(columns=crime_cols, inplace=True)
+
 # Save the final dataset to a new CSV file
 full_data.to_csv('crimes_finalized.csv', index=False)
 print(full_data.head())
