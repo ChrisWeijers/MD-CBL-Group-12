@@ -135,4 +135,4 @@ ax = plt.scatter(df_merged['fulltime_percentage'], df_merged['burglary_count'])
 plt.xlabel('Percentage of people working full-time')
 plt.ylabel('Total of burglaries')
 plt.title('Total Burglaries by Percentage of People Working Full-time per LSOA')
-plt.show()6
+plt.show()
