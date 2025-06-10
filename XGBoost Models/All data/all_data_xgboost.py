@@ -159,8 +159,38 @@ plt.show()
 
 # Add predictions to the test data and save to CSV
 test_data['Predicted Incident Count'] = y_pred
-test_data.to_csv('all_data_predictions_2024_2025.csv', index=False)
+test_data.rename(columns={'Predicted Incident Count': 'Predicted burglary count'}, inplace=True)
+test_data.to_csv('lsoa_all_data_predictions.csv', index=False)
 
 # Save the best model
 best_model.save_model('all_data_xgboost_model.json')
 print('Model saved.')
+
+# Load the mapping file and rename its columns
+mapping = pd.read_csv(data_dir / 'LSOA changes/london_lsoa11_lsoa21_lad22_ward24.csv')
+mapping = mapping.rename(columns={
+    'LSOA21CD': 'LSOA code 2021',
+    'LSOA21NM': 'LSOA name 2021',
+    'WD24CD': 'Ward code 2024',
+    'WD24NM': 'Ward name 2024'
+})
+
+# Add LSOA name 2021 to the test data if not present
+lsoa_mapping = mapping[['LSOA code 2021', 'LSOA name 2021']]
+test_data = test_data.merge(lsoa_mapping, on='LSOA code 2021', how='left')
+
+# Save a CSV without attributes used to make the predictions
+selected_cols = test_data[['LSOA code 2021', 'LSOA name 2021', 'Year', 'Month', 'Predicted burglary count']]
+selected_cols.to_csv('lsoa_predictions.csv', index=False)
+
+# Select the ward information columns directly from mapping
+ward_mapping = mapping[['LSOA code 2021', 'Ward code 2024', 'Ward name 2024']]
+
+# Merge the selected predictions with the ward mapping to get ward information
+ward_preds = selected_cols.merge(ward_mapping, on='LSOA code 2021', how='left')
+
+# Aggregate the predicted burglary counts to wards by Year and Month
+ward_aggr = ward_preds.groupby(['Ward code 2024', 'Ward name 2024', 'Year', 'Month'], as_index=False)['Predicted burglary count'].sum()
+ward_aggr = ward_aggr[['Ward code 2024', 'Ward name 2024', 'Year', 'Month', 'Predicted burglary count']]
+ward_aggr.to_csv('ward_predictions.csv', index=False)
+print('Predictions saved.')
