@@ -22,7 +22,9 @@ l_to_w = pd.read_csv(r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\LS
 
 #Load burglary data
 df = pd.read_csv(data_path, parse_dates=['Month'], low_memory=False)
+df['Month'] = [int(month) for month in df['Month']]
 dfw = pd.read_csv(dataw_path, parse_dates=['Month'], low_memory=False)
+dfw['Month'] = [int(month) for month in dfw['Month']]
 
 #Count burglary incidents per LSOA code
 burglary_counts = df.groupby('LSOA code 2021').sum(numeric_only=True).drop(columns=['Year']).reset_index()
