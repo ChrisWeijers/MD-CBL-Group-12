@@ -27,11 +27,11 @@ monthly["Total precipitation (mm)"] = monthly["Total precipitation (mm)"].round(
 # Compute the number of days with at least 1mm of precipitation
 daily = df.groupby(["Year", "Month", "Day"], as_index=False)["Total precipitation (mm)"].sum()
 rain_days = daily[daily["Total precipitation (mm)"] >= 1]
-rain_days_count = rain_days.groupby(["Year", "Month"]).size().reset_index(name="Number of days (> 1mm of precipitation)")
+rain_days_count = rain_days.groupby(["Year", "Month"]).size().reset_index(name="Number of days (more than 1mm of precipitation)")
 
 # Merge monthly totals with the daily rain counts
 monthly = monthly.merge(rain_days_count, on=["Year", "Month"], how="left")
-monthly["Number of days (> 1mm of precipitation)"] = monthly["Number of days (> 1mm of precipitation)"].fillna(0).astype(int)
+monthly["Number of days (more than 1mm of precipitation)"] = monthly["Number of days (more than 1mm of precipitation)"].fillna(0).astype(int)
 
 # # Save the final monthly aggregated data to CSV
 # monthly.to_csv("precipitation_monthly.csv", index=False)

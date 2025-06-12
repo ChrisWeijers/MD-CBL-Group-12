@@ -19,7 +19,7 @@ months_full = list(range(1, 13))
 grid_full = pd.DataFrame(list(product(years_full, months_full)), columns=["Year", "Month"])
 
 years_partial = [2026]
-months_partial = list(range(1, 6))
+months_partial = list(range(1, 5))
 grid_partial = pd.DataFrame(list(product(years_partial, months_partial)), columns=["Year", "Month"])
 
 year_month = pd.concat([grid_full, grid_partial], ignore_index=True)
