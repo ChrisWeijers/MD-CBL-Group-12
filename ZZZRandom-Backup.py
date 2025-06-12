@@ -116,7 +116,7 @@ app.layout = html.Div([
             tooltip={"placement": "bottom", "always_visible": True},
             id='lsoa-date-range-slider'
         ),
-        html.Div(id='something'),
+        html.Div(id='Range shower'),
         dcc.Graph(id="graph"),
         html.Button('Submit', id='submit-val', n_clicks=0)
     ], style={'display': 'inline-block', 'verticalAlign': 'top', 'width': '65%'}),
@@ -138,7 +138,7 @@ app.layout = html.Div([
 
 
 @app.callback(
-    Output('something', 'children'),
+    Output('Range shower', 'children'),
     Input('lsoa-date-range-slider', 'value')
 )
 def update_output(value):
