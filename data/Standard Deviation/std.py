@@ -11,7 +11,7 @@ crimes = pd.read_csv(crimes_file, usecols=["LSOA code 2021", "Year", "Month", "B
 crimes["date"] = pd.to_datetime(crimes[["Year", "Month"]].assign(DAY=1))
 
 # Filter to the range 2011-01 through 2025-02
-crimes = crimes[(crimes["date"] >= "2011-01-01") & (crimes["date"] <= "2025-02-01")]
+crimes = crimes[(crimes["date"] >= "2011-01-01") & (crimes["date"] <= "2025-04-01")]
 
 # Pivot to get a wide dataframe
 pivot = crimes.pivot_table(
@@ -23,7 +23,7 @@ pivot = crimes.pivot_table(
 )
 
 # Ensure that all months are present
-all_months = pd.date_range(start="2011-01-01", end="2025-02-01", freq="MS")
+all_months = pd.date_range(start="2011-01-01", end="2025-04-01", freq="MS")
 pivot = pivot.reindex(all_months, fill_value=0)
 
 # Shift down by one month so that “lag1” for 2023-06 reflects May 2023

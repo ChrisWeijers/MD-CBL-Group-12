@@ -66,7 +66,7 @@ crimes["Month"] = crimes["Month"].astype(int)
 crimes["date"] = pd.to_datetime(crimes[["Year", "Month"]].assign(DAY=1))
 
 # Filter to the period 2011-01 through 2025-02
-crimes = crimes[(crimes["date"] >= "2011-01-01") & (crimes["date"] <= "2025-02-01")]
+crimes = crimes[(crimes["date"] >= "2011-01-01") & (crimes["date"] <= "2025-04-01")]
 
 # Pivot the data
 pivot_df = crimes.pivot_table(
@@ -78,7 +78,7 @@ pivot_df = crimes.pivot_table(
 )
 
 # Ensure every calendar month is present as a row
-all_months = pd.date_range(start="2011-01-01", end="2025-02-01", freq="MS")
+all_months = pd.date_range(start="2011-01-01", end="2025-04-01", freq="MS")
 pivot_df = pivot_df.reindex(all_months, fill_value=0)
 
 # Ensure every LSOA code (from shapefile) is a column
