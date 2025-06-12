@@ -152,7 +152,6 @@ def info_hover(feature):
 
 @app.callback(
     Output("graph", "figure"),
-    Output("geojson", "data"),
     Input("geojson", "clickData"),
     Input('lsoa-date-range-slider', 'value'),
 )
