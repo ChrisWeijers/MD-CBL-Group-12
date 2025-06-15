@@ -10,18 +10,19 @@ from dash import dcc, dash_table
 import plotly.express as px
 import calendar
 import DateTime as dt
+import numpy as np
 
-geojson_path = r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\london_lsoa_combined.geojson' #geojson file location
-geojson_pathw = r"C:\Users\20233284\Documents\Huiswerk\Data Challenge 2\wards3\Wards_May_2024_Boundaries_UK_BSC_8498175397534686318.geojson" #copy the path to the wards geojson file
-data_path = r"C:\Users\20233284\Downloads\lsoa_predictions(1).csv"
-dataw_path = r"C:\Users\20233284\Downloads\ward_predictions(1).csv"
+geojson_path = r'C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\london_lsoa_combined.geojson' #geojson file location
+geojson_pathw = r"C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\Wards_May_2024_Boundaries_UK_BSC_8498175397534686318.geojson" #copy the path to the wards geojson file
+data_path = r"C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\lsoa_predictions_latest.csv"
+dataw_path = r"C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\ward_predictions_latest.csv"
 
 #Load GeoJSON boundaries
 gdf = gpd.read_file(geojson_path)
 gdfw = gpd.read_file(geojson_pathw)
 
 #2021 lsoa to 2024 ward
-l_to_w = pd.read_csv(r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\LSOA_(2021)_to_Electoral_Ward_(2024)_to_LAD_(2024)_Best_Fit_Lookup_in_EW.csv')
+l_to_w = pd.read_csv(r'C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\LSOA_(2021)_to_Electoral_Ward_(2024)_to_LAD_(2024)_Best_Fit_Lookup_in_EW.csv')
 l_to_w_dict = dict(zip(l_to_w['LSOA21CD'], l_to_w['WD24CD']))
 
 #Load burglary data
@@ -61,15 +62,50 @@ WARDSDF['features'] = [ward for ward in WARDSDF['features'] if not ward['propert
 wards = [ward['properties']['Ward code 2024'] for ward in WARDSDF['features']]
 
 # Formula (make this proportional)
-df["Recommended policing hours per month"] = df["Predicted burglary count"] * 3 + 10
+df['WD24CD'] = df['LSOA code 2021'].map(l_to_w_dict)
+merged_monthly = merged.merge(df[['LSOA code 2021', 'MonthDate', 'Predicted burglary count', 'WD24CD']],
+                              left_on=['lsoa21cd', 'WD24CD'],
+                              right_on=['LSOA code 2021', 'WD24CD'],
+                              how='left')
+merged_monthly.rename(columns={'Predicted burglary count_y': 'Predicted burglary count (LSOA)'}, inplace=True)
+merged_monthly['Predicted burglary count'] = merged_monthly['Predicted burglary count (LSOA)'].fillna(0)
+merged_monthly['Predicted burglary count'] = merged_monthly['Predicted burglary count'].fillna(0)
+ward_monthly_totals = merged_monthly.groupby(['WD24CD', 'MonthDate'])['Predicted burglary count'].sum().reset_index()
+ward_monthly_totals = ward_monthly_totals.rename(columns={'Predicted burglary count': 'Ward total predicted burglary count'})
+merged_monthly = merged_monthly.merge(ward_monthly_totals, on=['WD24CD', 'MonthDate'], how='left')
+merged_monthly['Ward total predicted burglary count'].replace(0, np.nan, inplace=True)
+merged_monthly['Burglary proportion'] = merged_monthly['Predicted burglary count'] / merged_monthly['Ward total predicted burglary count']
+merged_monthly['Recommended policing hours'] = merged_monthly['Burglary proportion'] * 3200
+merged_monthly['Recommended policing hours'] = merged_monthly['Recommended policing hours'].fillna(0)
+df["Recommended policing hours per month"] = merged_monthly['Recommended policing hours']
 df['Recommended policing hours per week'] = df['Recommended policing hours per month'] / 4.5
-dfw["Recommended policing hours per month"] = dfw["Predicted burglary count"] * 3 + 10
+dfw["Recommended policing hours per month"] = 3200
 dfw['Recommended policing hours per week'] = dfw['Recommended policing hours per month'] / 4.5
 
 #code to name dict for dropdown
 code_to_name = dict(zip(merged['lsoa21cd'], merged['lsoa21nm']))
 ward_code_to_name = dict(zip(merged['WD24CD'], merged['WD24NM']))
 code_to_name.update(ward_code_to_name)
+
+# new database for Data-Table
+# Add 'level' column to distinguish rows
+df['level'] = 'LSOA'
+dfw['level'] = 'Ward'
+
+# Make sure columns are aligned (if needed, fill missing columns)
+for col in df.columns:
+    if col not in dfw.columns:
+        dfw[col] = None
+for col in dfw.columns:
+    if col not in df.columns:
+        df[col] = None
+
+# Reorder columns to be the same (use df.columns order)
+dfw = dfw[df.columns]
+
+# Concatenate without renaming
+df_dataframe = pd.concat([df, dfw], ignore_index=True)
+
 
 #TO DO inbouwen opties voor LSOA of ward
 def get_info(feature=None):
@@ -148,45 +184,62 @@ def get_code_from_feature(feature):
 app = DashProxy(prevent_initial_callbacks=False)
 app.layout = html.Div([
     html.H1("London Burglary App"),
-    dl.Map(id='map',
-        children=[dl.TileLayer(), geojson, selected_geojson, colorbar, info],
-        style={"height": "60vh", "width": "60vw"},
-        center=[56, 10],
-        zoom=6
-    ),
-    dcc.RangeSlider(
-        min=0,
-        max=len(months_in_df) - 1,
-        step=1,
-        value=[0, len(months_in_df) - 1],
-        marks=labels,
-        tooltip={"placement": "bottom", "always_visible": True},
-        id='lsoa-date-range-slider'
-    ),
-    html.Div(id='Range shower'),
-    html.Br(),
-    html.Label("Select an area:"),
-    dcc.Dropdown(
-        id='lsoa-dropdown',
-        options=[{'label': 'All London', 'value': 'ALL'}] +
-                [{'label': code_to_name[code], 'value': code} for code in code_to_name],
-        value='ALL'
-    ),
-    dcc.Graph(id="graph"),
-    html.Button('All LSOAs', id='lsoabutton', n_clicks=0),
-    html.Button('All wards', id='wardbutton', n_clicks=0),
-    html.H2("Burglary Table"),
-    dash_table.DataTable(
-        id='Data-Table',
-        columns=[{"name": col, "id": col} for col in df.columns],
-        style_table={'overflowX': 'auto'},
-        style_cell={'textAlign': 'left', 'padding': '5px'},
-        style_header={'backgroundColor': 'lightgrey', 'fontWeight': 'bold'},
-        sort_action='native',
-        filter_action='native',
-    )
-    ]
-)
+
+    # Top section: map + controls on the left, graph on the right
+    html.Div([
+        # Left panel (Map + Slider + Dropdown)
+        html.Div([
+            dl.Map(
+                id='map',
+                children=[dl.TileLayer(), geojson, selected_geojson, colorbar, info],
+                style={"height": "60vh", "width": "40vw"},
+                center=[51, 0],
+                zoom=10
+            ),
+            html.Br(),
+            dcc.RangeSlider(
+                min=0,
+                max=len(months_in_df) - 1,
+                step=1,
+                value=[0, len(months_in_df) - 1],
+                marks=labels,
+                id='lsoa-date-range-slider'
+            ),
+            html.Br(),
+            html.Label("Select an area:"),
+            dcc.Dropdown(
+                id='lsoa-dropdown',
+                options=[{'label': 'All London', 'value': 'ALL'}] +
+                        [{'label': code_to_name[code], 'value': code} for code in code_to_name],
+                value='ALL'
+            ),
+            html.Div(id='Range shower'),
+            html.Br(),
+            html.Button('All LSOAs', id='lsoabutton', n_clicks=0),
+            html.Button('All wards', id='wardbutton', n_clicks=0),
+        ], style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '10px'}),
+
+        # Right panel (Graph)
+        html.Div([
+            dcc.Graph(id="graph")
+        ], style={'width': '50%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '10px'}),
+    ]),
+
+    # Bottom section: Data Table
+    html.Div([
+        html.H2("Burglary Table"),
+        dash_table.DataTable(
+            id='Data-Table',
+            columns=[{"name": col, "id": col} for col in df_dataframe.columns],
+            style_table={'overflowX': 'auto'},
+            style_cell={'textAlign': 'left', 'padding': '5px'},
+            style_header={'backgroundColor': 'lightgrey', 'fontWeight': 'bold'},
+            sort_action='native',
+            filter_action='native',
+        )
+    ], style={'padding': '20px'})
+])
+
 
 @app.callback(
     Output('Range shower', 'value'),
@@ -258,6 +311,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             ward = feature['properties']['WD24CD']
             df_1ward = filtered_json.copy()
             df_1ward['features'] = [lsoa for lsoa in df_1ward['features'] if lsoa['properties']['WD24CD'] == ward]
+
 
             # Generate full date range from predictions data
             all_months = pd.date_range(
@@ -358,7 +412,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             # df_month = df_ward.groupby('Month').size().reset_index(name='Burglary Count')
             # fig = px.line(df_month, x=df_month['Month'], y=df_month['Burglary Count'], markers=True,
             #                 labels={'x': "Months", 'y': "Burglaries"}, title=f'Monthly predicted burglaries of selected ward ({feature["properties"]["WD24NM"]})')
-            return fig, df_1ward, None, df_sel.to_dict('records'), None
+            return fig, df_1ward, None, df_sel.to_dict('records'), dropdown
 
     #if the dropdown was used
     if dropdown:
@@ -402,7 +456,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             fig.update_yaxes(title="Predicted Burglaries")
             fig.update_layout(margin=dict(l=40, r=40, t=80, b=40))
 
-            return fig, filtered_json, None, df_sel.to_dict('records'), None
+            return fig, filtered_json, None, df_sel.to_dict('records'), dropdown
 
         # if dropdown selected ward
         elif dropdown in wards:
@@ -451,7 +505,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             df_1ward = filtered_json.copy()
             df_1ward['features'] = [lsoa for lsoa in df_1ward['features'] if lsoa['properties']['WD24CD'] == dropdown]
 
-            return fig, df_1ward, None, df_sel.to_dict('records'), None
+            return fig, df_1ward, None, df_sel.to_dict('records'), dropdown
 
         #if dropdown selected LSOA
         else:
@@ -501,7 +555,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             ward = l_to_w_dict[dropdown]
             df_1ward['features'] = [lsoa for lsoa in df_1ward['features'] if lsoa['properties']['WD24CD'] == ward]
 
-            return fig, df_1ward, None, df_sel.to_dict('records'), None
+            return fig, df_1ward, None, df_sel.to_dict('records'), dropdown
 
     #if nothing selected
 
@@ -556,14 +610,14 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "wardbutton":
-        return fig, filtered_jsonw, None, filtered_dfw.to_dict('records'), None#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
+        return fig, filtered_jsonw, None, filtered_dfw.to_dict('records'), dropdown#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
     elif button_id == "lsoabutton":
-        return fig, filtered_json, None, filtered_df.to_dict('records'), None#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
+        return fig, filtered_json, None, filtered_df.to_dict('records'), dropdown#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
     else:
         if 'lsoa21cd' in mapdata['features'][0]['properties'].keys():
-            return fig, filtered_json, None, df_sel.to_dict('records'), None#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
+            return fig, filtered_json, None, df_sel.to_dict('records'), dropdown#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
         else:
-            return fig, filtered_jsonw, None, filtered_dfw.to_dict('records'), None#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
+            return fig, filtered_jsonw, None, filtered_dfw.to_dict('records'), dropdown#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
 
 
 if __name__ == "__main__":
