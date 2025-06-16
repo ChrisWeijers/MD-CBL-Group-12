@@ -12,18 +12,22 @@ import calendar
 import DateTime as dt
 import numpy as np
 
-geojson_path = r'C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\london_lsoa_combined.geojson' #geojson file location
-geojson_pathw = r"C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\Wards_May_2024_Boundaries_UK_BSC_8498175397534686318.geojson" #copy the path to the wards geojson file
-data_path = r"C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\lsoa_predictions_latest.csv"
-dataw_path = r"C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\ward_predictions_latest.csv"
+geojson_path = r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\london_lsoa_combined.geojson' #geojson file location
+geojson_pathw = r"C:\Users\20233284\Documents\Huiswerk\Data Challenge 2\wards3\Wards_May_2024_Boundaries_UK_BSC_8498175397534686318.geojson" #copy the path to the wards geojson file
+data_path = r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\lsoa_predictions.csv'
+dataw_path = r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\ward_predictions.csv'
 
 #Load GeoJSON boundaries
 gdf = gpd.read_file(geojson_path)
 gdfw = gpd.read_file(geojson_pathw)
 
 #2021 lsoa to 2024 ward
-l_to_w = pd.read_csv(r'C:\Users\20234783\Documents\GitHub\Data Challange 1 New\MD-CBL-Group-12\data\LSOA_(2021)_to_Electoral_Ward_(2024)_to_LAD_(2024)_Best_Fit_Lookup_in_EW.csv')
+l_to_w = pd.read_csv(r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\LSOA_(2021)_to_Electoral_Ward_(2024)_to_LAD_(2024)_Best_Fit_Lookup_in_EW.csv')
 l_to_w_dict = dict(zip(l_to_w['LSOA21CD'], l_to_w['WD24CD']))
+
+#City of London LSOAs
+CofL = ['City of London 001A', 'City of London 001B', 'City of London 001C', 'City of London 001D', 'City of London 001E',
+        'City of London 001F', 'City of London 001G']
 
 #Load burglary data
 df = pd.read_csv(data_path, parse_dates=['Month'], low_memory=False)
@@ -43,15 +47,16 @@ labels = {i: f"{calendar.month_abbr[m.month]} {m.year}" for i, m in enumerate(mo
 
 
 #Count burglary incidents per LSOA code
-burglary_counts = df.groupby('LSOA code 2021').sum(numeric_only=True).drop(columns=['Year']).reset_index()
+burglary_counts = df.groupby('LSOA code 2021').sum(numeric_only=True).drop(columns=['Year', 'Month']).reset_index()
 merged = gdf.merge(burglary_counts, left_on="lsoa21cd", right_on="LSOA code 2021", how="left")
 merged = merged.merge(l_to_w, left_on='lsoa21cd', right_on='LSOA21CD', how='left').drop(columns=['msoa21cd','msoa21nm','lad22cd','lad22nm','LSOA21NMW','WD24NMW','LAD24CD','LAD24NM','LAD24NMW'])
 merged['Predicted burglary count'] = merged['Predicted burglary count'].fillna(0)
 merged = merged.to_crs(epsg=4326)
 merged_json = json.loads(merged.to_json())
+merged_json['features'] = [lsoa for lsoa in merged_json['features'] if not lsoa['properties']['lsoa21nm'] in CofL]
 
 #Count burglary incidents per ward code
-burglary_counts = dfw.groupby('Ward code 2024').sum(numeric_only=True).drop(columns=['Year']).reset_index()
+burglary_counts = dfw.groupby('Ward code 2024').sum(numeric_only=True).drop(columns=['Year', 'Month']).reset_index()
 mergedw = gdfw.merge(burglary_counts, left_on="WD24CD", right_on="Ward code 2024", how="left")
 mergedw[('Predicted burglary count')] = mergedw['Predicted burglary count'].fillna(0)
 mergedw = mergedw.to_crs(epsg=4326)
@@ -89,22 +94,22 @@ code_to_name.update(ward_code_to_name)
 
 # new database for Data-Table
 # Add 'level' column to distinguish rows
-df['level'] = 'LSOA'
-dfw['level'] = 'Ward'
+# df['level'] = 'LSOA'
+# dfw['level'] = 'Ward'
 
 # Make sure columns are aligned (if needed, fill missing columns)
-for col in df.columns:
-    if col not in dfw.columns:
-        dfw[col] = None
-for col in dfw.columns:
-    if col not in df.columns:
-        df[col] = None
+# for col in df.columns:
+#     if col not in dfw.columns:
+#         dfw[col] = None
+# for col in dfw.columns:
+#     if col not in df.columns:
+#         df[col] = None
 
 # Reorder columns to be the same (use df.columns order)
-dfw = dfw[df.columns]
+# dfw = dfw[df.columns]
 
 # Concatenate without renaming
-df_dataframe = pd.concat([df, dfw], ignore_index=True)
+# df_dataframe = pd.concat([df, dfw], ignore_index=True)
 
 
 #TO DO inbouwen opties voor LSOA of ward
@@ -230,7 +235,8 @@ app.layout = html.Div([
         html.H2("Burglary Table"),
         dash_table.DataTable(
             id='Data-Table',
-            columns=[{"name": col, "id": col} for col in df_dataframe.columns],
+            # columns=[{"name": col, "id": col} for col in df_dataframe.columns],
+            columns=[],
             style_table={'overflowX': 'auto'},
             style_cell={'textAlign': 'left', 'padding': '5px'},
             style_header={'backgroundColor': 'lightgrey', 'fontWeight': 'bold'},
@@ -263,7 +269,8 @@ def info_hover(feature):
     Output('geojson', 'clickData'),
     Output("Data-Table", "data"),
     Output('lsoa-dropdown', 'value'),
-#    Output('selected-geojson', 'data'), #FOR SELECTION
+    Output("Data-Table", "columns"),
+    #    Output('selected-geojson', 'data'), #FOR SELECTION
     Input("geojson", "clickData"),
     Input("wardbutton", "n_clicks"),
     Input("lsoabutton", "n_clicks"),
@@ -286,7 +293,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             filtered_df = df[(df['MonthDate'] >= start_month) & (df['MonthDate'] <= end_month)]
             filtered_dfw = dfw[(dfw['MonthDate'] >= start_month) & (dfw['MonthDate'] <= end_month)]
 
-            burglary_counts = filtered_df.groupby('LSOA code 2021').sum(numeric_only=True).drop(columns=['Year']).reset_index()
+            burglary_counts = filtered_df.groupby('LSOA code 2021').sum(numeric_only=True).reset_index()
             merged = gdf.merge(burglary_counts, left_on="lsoa21cd", right_on="LSOA code 2021", how="left")
             merged = merged.merge(l_to_w, left_on='lsoa21cd', right_on='LSOA21CD', how='left').drop(
                 columns=['msoa21cd', 'msoa21nm', 'lad22cd', 'lad22nm', 'LSOA21NMW', 'WD24NMW', 'LAD24CD', 'LAD24NM',
@@ -294,8 +301,10 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             merged['Predicted burglary count'] = merged['Predicted burglary count'].fillna(0)
             merged = merged.to_crs(epsg=4326)
             filtered_json = json.loads(merged.to_json())
+            filtered_json['features'] = [lsoa for lsoa in merged_json['features'] if
+                                       not lsoa['properties']['lsoa21nm'] in CofL]
 
-            burglary_counts = filtered_dfw.groupby('Ward code 2024').sum(numeric_only=True).drop(columns=['Year']).reset_index()
+            burglary_counts = filtered_dfw.groupby('Ward code 2024').sum(numeric_only=True).reset_index()
             mergedw = gdfw.merge(burglary_counts, left_on="WD24CD", right_on="Ward code 2024", how="left")
             mergedw[('Predicted burglary count')] = mergedw['Predicted burglary count'].fillna(0)
             mergedw = mergedw.to_crs(epsg=4326)
@@ -360,7 +369,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             #     selected = merged[merged["lsoa21cd"] == selected_code]
             #     return {"type": "FeatureCollection", "features": json.loads(selected.to_json())["features"]}
             #
-            # return fig, df_1ward, None, df_sel.to_dict('records'), None, {"type": "FeatureCollection", "features": json.loads(selected.to_json())["features"]}
+            return fig, df_1ward, None, df_sel.to_dict('records'), None, [{"name": col, "id": col} for col in df_sel.columns if col not in ['Month', 'Year']] #, {"type": "FeatureCollection", "features": json.loads(selected.to_json())["features"]}
 
         #if a ward was clicked
         else:
@@ -412,7 +421,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             # df_month = df_ward.groupby('Month').size().reset_index(name='Burglary Count')
             # fig = px.line(df_month, x=df_month['Month'], y=df_month['Burglary Count'], markers=True,
             #                 labels={'x': "Months", 'y': "Burglaries"}, title=f'Monthly predicted burglaries of selected ward ({feature["properties"]["WD24NM"]})')
-            return fig, df_1ward, None, df_sel.to_dict('records'), dropdown
+            return fig, df_1ward, None, df_sel.to_dict('records'), None, [{"name": col, "id": col} for col in df_sel.columns if col not in ['Month', 'Year']]
 
     #if the dropdown was used
     if dropdown:
@@ -456,7 +465,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             fig.update_yaxes(title="Predicted Burglaries")
             fig.update_layout(margin=dict(l=40, r=40, t=80, b=40))
 
-            return fig, filtered_json, None, df_sel.to_dict('records'), dropdown
+            return fig, filtered_json, None, df_sel.to_dict('records'), None, [{"name": col, "id": col} for col in df_sel.columns if col not in ['Month', 'Year']]
 
         # if dropdown selected ward
         elif dropdown in wards:
@@ -505,7 +514,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             df_1ward = filtered_json.copy()
             df_1ward['features'] = [lsoa for lsoa in df_1ward['features'] if lsoa['properties']['WD24CD'] == dropdown]
 
-            return fig, df_1ward, None, df_sel.to_dict('records'), dropdown
+            return fig, df_1ward, None, df_sel.to_dict('records'), None, [{"name": col, "id": col} for col in df_sel.columns if col not in ['Month', 'Year']]
 
         #if dropdown selected LSOA
         else:
@@ -555,7 +564,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
             ward = l_to_w_dict[dropdown]
             df_1ward['features'] = [lsoa for lsoa in df_1ward['features'] if lsoa['properties']['WD24CD'] == ward]
 
-            return fig, df_1ward, None, df_sel.to_dict('records'), dropdown
+            return fig, df_1ward, None, df_sel.to_dict('records'), None, [{"name": col, "id": col} for col in df_sel.columns if col not in ['Month', 'Year']]
 
     #if nothing selected
 
@@ -610,14 +619,14 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
     button_id = ctx.triggered[0]["prop_id"].split(".")[0]
 
     if button_id == "wardbutton":
-        return fig, filtered_jsonw, None, filtered_dfw.to_dict('records'), dropdown#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
+        return fig, filtered_jsonw, None, filtered_dfw.to_dict('records'), None, [{"name": col, "id": col} for col in filtered_dfw.columns if col not in ['Month', 'Year']]#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
     elif button_id == "lsoabutton":
-        return fig, filtered_json, None, filtered_df.to_dict('records'), dropdown#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
+        return fig, filtered_json, None, filtered_df.to_dict('records'), None, [{"name": col, "id": col} for col in filtered_df.columns if col not in ['Month', 'Year']]#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
     else:
         if 'lsoa21cd' in mapdata['features'][0]['properties'].keys():
-            return fig, filtered_json, None, df_sel.to_dict('records'), dropdown#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
+            return fig, filtered_json, None, df_sel.to_dict('records'), None, [{"name": col, "id": col} for col in df_sel.columns if col not in ['Month', 'Year']]#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
         else:
-            return fig, filtered_jsonw, None, filtered_dfw.to_dict('records'), dropdown#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
+            return fig, filtered_jsonw, None, filtered_dfw.to_dict('records'), None, [{"name": col, "id": col} for col in filtered_dfw.columns if col not in ['Month', 'Year']]#, {"type": "FeatureCollection", "features": []} #FOR SELECTION
 
 
 if __name__ == "__main__":
