@@ -1,6 +1,0 @@
-50 trials
-
-Best hyperparameters: {'n_estimators': 145, 'max_depth': 6, 'learning_rate': 0.06936095394922644, 'subsample': 0.8019623469606814, 'min_child_weight': 2, 'colsample_bytree': 0.9522064953367565, 'gamma': 0.18764570393249919, 'reg_alpha': 0.8011774797266076, 'reg_lambda': 0.3918648822032254}
-
-Best CV MSE: 0.0018008401448154135
-Test MSE: 0.00028628341749419505
