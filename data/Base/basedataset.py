@@ -3,7 +3,7 @@ from itertools import product
 from pathlib import Path
 
 data_dir = Path(__file__).resolve().parent.parent
-lsoa_file = data_dir / "LSOA changes/london_lsoa11_lsoa21_lad22_ward24.csv"
+lsoa_file = data_dir / "LSOA_changes/london_lsoa11_lsoa21_lad22_ward24.csv"
 
 # 1. Load the LSOA dataset
 lsoa_df = pd.read_csv(lsoa_file)
@@ -29,6 +29,6 @@ baseline = lsoa_df.merge(year_month, how="cross")
 baseline = baseline.sort_values(["LSOA code 2021", "LSOA name 2021", "Year", "Month"]).reset_index(drop=True)
 
 # 4. Save the baseline dataset to CSV
-baseline.to_csv("baseline_dataset.csv", index=False)
+baseline.to_csv(data_dir / "Base/baseline_dataset.csv", index=False)
 print("Baseline dataset created with", baseline.shape[0], "rows")
 print(baseline.head())

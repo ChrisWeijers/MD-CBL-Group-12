@@ -10,7 +10,7 @@ baseline = pd.read_csv(baseline_file)
 
 # Load, clean and map IMD data points
 # IMD data for 2008-06
-imd_2008 = pd.read_csv("imd2010adj_2015.csv", usecols=["LSOA code (2011)", "2010imd_rank"])
+imd_2008 = pd.read_csv(data_dir / "IMD/imd2010adj_2015.csv", usecols=["LSOA code (2011)", "2010imd_rank"])
 imd_2008.rename(columns={
     "LSOA code (2011)": "LSOA code 2011",
     "2010imd_rank": "IMD Rank"
@@ -41,7 +41,7 @@ combined_imd_2008 = pd.concat([data_US_reduced, data_M_avg], ignore_index=True)
 combined_imd_2008 = combined_imd_2008.drop_duplicates(subset=["LSOA code 2021", "Year", "Month"])
 
 # IMD data for 2012-06
-imd_2012 = pd.read_excel("File_1_ID_2015_Index_of_Multiple_Deprivation.xlsx", sheet_name="IMD 2015")
+imd_2012 = pd.read_excel(data_dir / "IMD/File_1_ID_2015_Index_of_Multiple_Deprivation.xlsx", sheet_name="IMD 2015")
 imd_2012 = imd_2012[["LSOA code (2011)", "Index of Multiple Deprivation (IMD) Rank (where 1 is most deprived)"]]
 imd_2012.rename(columns={
     "LSOA code (2011)": "LSOA code 2011",
@@ -73,7 +73,7 @@ combined_imd_2012 = pd.concat([data_US_reduced, data_M_avg], ignore_index=True)
 combined_imd_2012 = combined_imd_2012.drop_duplicates(subset=["LSOA code 2021", "Year", "Month"])
 
 # IMD data for 2015-06
-imd_2015 = pd.read_excel("File_1_IMD2019_Index_of_Multiple_Deprivation.xlsx", sheet_name="IMD2019")
+imd_2015 = pd.read_excel(data_dir / "IMD/File_1_IMD2019_Index_of_Multiple_Deprivation.xlsx", sheet_name="IMD2019")
 imd_2015 = imd_2015[["LSOA code (2011)", "Index of Multiple Deprivation (IMD) Rank"]]
 imd_2015.rename(columns={
     "LSOA code (2011)": "LSOA code 2011",
@@ -152,5 +152,5 @@ imd_final.drop(columns=['time'], inplace=True, errors='ignore')
 imd_final.reset_index(drop=True, inplace=True)
 
 # Save the finalized IMD data.
-imd_final.to_csv("imd_finalized.csv", index=False)
+imd_final.to_csv(data_dir / "IMD/imd_finalized.csv", index=False)
 print(imd_final.head())

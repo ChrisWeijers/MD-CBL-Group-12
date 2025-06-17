@@ -9,16 +9,16 @@ import dash
 from dash import dcc
 import plotly.express as px
 
-geojson_path = r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\london_lsoa_combined.geojson' #geojson file location
-geojson_pathw = r"C:\Users\20233284\Documents\Huiswerk\Data Challenge 2\wards3\Wards_May_2024_Boundaries_UK_BSC_8498175397534686318.geojson" #copy the path to the wards geojson file
-data_path = r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\lsoa_predictions.csv'
-dataw_path = r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\ward_predictions.csv'
+geojson_path = 'app/london_lsoa_combined.geojson' #geojson file location
+geojson_pathw = "data/wards.geojson" #copy the path to the wards geojson file
+data_path = 'data/lsoa_predictions.csv'
+dataw_path = 'data/ward_predictions.csv'
 #Load GeoJSON boundaries
 gdf = gpd.read_file(geojson_path)
 gdfw = gpd.read_file(geojson_pathw)
 
 #2021 lsoa to 2024 ward
-l_to_w = pd.read_csv(r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\LSOA_(2021)_to_Electoral_Ward_(2024)_to_LAD_(2024)_Best_Fit_Lookup_in_EW.csv')
+l_to_w = pd.read_csv('data/LSOA_changes/LSOA_(2021)_to_Electoral_Ward_(2024)_to_LAD_(2024)_Best_Fit_Lookup_in_EW.csv')
 l_to_w_dict = dict(zip(l_to_w['LSOA21CD'], l_to_w['WD24CD']))
 
 #Load burglary data

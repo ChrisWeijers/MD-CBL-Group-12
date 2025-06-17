@@ -1,3 +1,6 @@
+import webbrowser
+from threading import Timer
+
 import dash_leaflet as dl
 import dash_leaflet.express as dlx
 from dash_extensions.enrich import DashProxy, Input, Output, html
@@ -11,18 +14,22 @@ import plotly.express as px
 import calendar
 import DateTime as dt
 import numpy as np
+from pathlib import Path
 
-geojson_path = r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\london_lsoa_combined.geojson' #geojson file location
-geojson_pathw = r"C:\Users\20233284\Documents\Huiswerk\Data Challenge 2\wards3\Wards_May_2024_Boundaries_UK_BSC_8498175397534686318.geojson" #copy the path to the wards geojson file
-data_path = r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\lsoa_predictions.csv'
-dataw_path = r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\ward_predictions.csv'
+base_dir = Path(__file__).resolve().parent.parent
+
+geojson_path = base_dir / 'app/london_lsoa_combined.geojson'
+geojson_pathw = base_dir / "app/Wards_May_2024_Boundaries_UK_BSC_8498175397534686318.geojson"
+data_path = base_dir / "app/lsoa_predictions.csv"
+dataw_path = base_dir / "app/ward_predictions.csv"
 
 #Load GeoJSON boundaries
 gdf = gpd.read_file(geojson_path)
 gdfw = gpd.read_file(geojson_pathw)
 
 #2021 lsoa to 2024 ward
-l_to_w = pd.read_csv(r'C:\Users\20233284\PycharmProjects\MD-CBL-Group-12\data\LSOA_(2021)_to_Electoral_Ward_(2024)_to_LAD_(2024)_Best_Fit_Lookup_in_EW.csv')
+l_to_w = pd.read_csv(
+    base_dir / 'data/LSOA_changes/LSOA_(2021)_to_Electoral_Ward_(2024)_to_LAD_(2024)_Best_Fit_Lookup_in_EW.csv')
 l_to_w_dict = dict(zip(l_to_w['LSOA21CD'], l_to_w['WD24CD']))
 
 #City of London LSOAs
@@ -630,4 +637,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
 
 
 if __name__ == "__main__":
+    # Open the browser after a short delay
+    Timer(1, lambda: webbrowser.open(f"http://127.0.0.1:8050")).start()
+
     app.run()

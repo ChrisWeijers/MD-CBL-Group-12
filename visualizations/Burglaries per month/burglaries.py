@@ -19,7 +19,7 @@ crimes['date'] = pd.to_datetime(crimes[['Year', 'Month']].assign(DAY=1))
 crimes = crimes[(crimes['date'] >= '2011-01-01') & (crimes['date'] <= '2025-02-01')]
 
 # Load and combine LSOA boundary shapefiles (one per LAD)
-shp_folder = "C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/LSOA boundaries/LB_shp"
+shp_folder = "C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/LSOA_boundaries/LB_shp"
 shp_files = glob.glob(os.path.join(shp_folder, "*.shp"))
 gdf_list = [gpd.read_file(shp_file) for shp_file in shp_files]
 gdf = gpd.GeoDataFrame(pd.concat(gdf_list, ignore_index=True))

@@ -6,7 +6,7 @@ data_dir = Path(__file__).resolve().parent.parent
 baseline_file = data_dir / 'Base/baseline_dataset.csv'
 
 # Load the qualifications data for 2011 and clean it up
-qual_2011 = pd.read_csv('qualifications_2011.csv')
+qual_2011 = pd.read_csv(data_dir / 'Education/qualifications_2011.csv')
 qual_2011 = qual_2011.drop(columns=['All categories: Highest level of qualification'], errors='ignore')
 qual_2011 = qual_2011.rename(columns={
     '2011 super output area - lower layer': 'LSOA name 2011',
@@ -67,7 +67,7 @@ qual_2011_finalized = pd.merge(baseline, combined_quals, on=["LSOA code 2021", "
 qual_2011_finalized = qual_2011_finalized.drop(columns=['LSOA code 2011', 'LSOA name 2021', 'Change Indicator'], errors='ignore')
 
 # Load the 2021 qualifications data and clean it up
-qual_2021 = pd.read_csv('qualifications_2021.csv')
+qual_2021 = pd.read_csv(data_dir / 'Education/qualifications_2021.csv')
 qual_2021 = qual_2021.drop(columns=['Total: All usual residents aged 16 years and over'], errors='ignore')
 qual_2021 = qual_2021.rename(columns={
     '2021 super output area - lower layer': 'LSOA name 2021',
@@ -139,5 +139,5 @@ def linear_estimation(group):
 df_est = qual_2011_2021_finalized.groupby("LSOA code 2021", group_keys=False).apply(linear_estimation)
 
 # Save the final estimated dataset.
-df_est.to_csv("education_finalized.csv", index=False)
+df_est.to_csv(data_dir / "Education/education_finalized.csv", index=False)
 print(df_est.head())

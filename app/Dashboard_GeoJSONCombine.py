@@ -1,9 +1,11 @@
 import geopandas as gpd
 import pandas as pd
 import os
+from pathlib import Path
 
 #Path to the folder with all the individual borough shapefiles
-folder_path = ""  #Use the path for the file you downloaded from London dstabase
+data_dir = Path(__file__).resolve().parent.parent
+folder_path = data_dir / "data/LSOA_boundaries/LB_shp"
 
 #Get list of all .shp files
 shapefiles = [f for f in os.listdir(folder_path) if f.endswith('.shp')]
@@ -19,7 +21,7 @@ for shp in shapefiles:
 gdf_all = gpd.GeoDataFrame(pd.concat(gdfs, ignore_index=True))
 
 #New output path sonset in the folder or repo
-output_path =r"C:\Users\yongj\OneDrive\Desktop\4CBLW00-20_Group_12\data\london_lsoa_combined.geojson"
+output_path = data_dir / "app/london_lsoa_combined.geojson"
 
 #Save as GeoJSON
 gdf_all.to_file(output_path, driver="GeoJSON")

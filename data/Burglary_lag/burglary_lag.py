@@ -38,5 +38,5 @@ derived_cols = crimes.columns.difference(key_cols)
 crimes.loc[mask, derived_cols] = np.nan
 
 # Save the lag dataset
-crimes.to_csv('burglary_lag_finalized.csv', index=False)
+crimes.to_csv(data_dir / 'Burglary_lag/burglary_lag_finalized.csv', index=False)
 print(crimes.head())

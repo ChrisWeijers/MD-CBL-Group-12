@@ -1,9 +1,10 @@
 import pandas as pd
-import numpy as np
 from scipy.interpolate import interp1d
 from pathlib import Path
 import re
 from functools import reduce
+
+data_dir = Path(__file__).resolve().parent.parent
 
 # Create function for loading the household income data.
 def load_household_income(file_path, year, weekly=False):
@@ -33,23 +34,23 @@ def load_household_income(file_path, year, weekly=False):
 
 
 # Load the household income data for the years 2012, 2014, 2016, 2018 and 2020.
-hi_2012 = load_household_income('1smallareaincomeestimatesdata201112.xlsx', 2012, weekly=True)
-hi_2014 = load_household_income('1smallareaincomeestimatesdata2014.xlsx', 2014, weekly=True)
-hi_2016 = load_household_income('1smallareaincomeestimatesdata2016.xls', 2016)
-hi_2018 = load_household_income('incomeestimatesforsmallareasdatasetfinancialyearending20181.xlsx', 2018)
-hi_2020 = load_household_income('annualincome2020.xlsx', 2020)
+hi_2012 = load_household_income(data_dir / 'Household_income/1smallareaincomeestimatesdata201112.xlsx', 2012, weekly=True)
+hi_2014 = load_household_income(data_dir / 'Household_income/1smallareaincomeestimatesdata2014.xlsx', 2014, weekly=True)
+hi_2016 = load_household_income(data_dir / 'Household_income/1smallareaincomeestimatesdata2016.xls', 2016)
+hi_2018 = load_household_income(data_dir / 'Household_income/incomeestimatesforsmallareasdatasetfinancialyearending20181.xlsx', 2018)
+hi_2020 = load_household_income(data_dir / 'Household_income/annualincome2020.xlsx', 2020)
 
 # Combine the dataframes.
 df_hi = pd.concat([hi_2012, hi_2014, hi_2016, hi_2018, hi_2020])
 
 # Load the LSOA to MSOA lookup file.
-msoa_lsoa = pd.read_csv('OAs_to_LSOAs_to_MSOAs_to_LEP_to_LAD_(April_2023)_Lookup_in_England.csv',
+msoa_lsoa = pd.read_csv(data_dir / 'Household_income/OAs_to_LSOAs_to_MSOAs_to_LEP_to_LAD_(April_2023)_Lookup_in_England.csv',
                         usecols=['LSOA21CD', 'MSOA21CD'])
 msoa_lsoa = msoa_lsoa.drop_duplicates().groupby('MSOA21CD', group_keys=True)[['LSOA21CD']].apply(lambda x: x)
 
 # Load the MSOA 2011 to MSOA 2021 lookup file.
 all_msoas = pd.read_csv(
-    'MSOA_(2011)_to_MSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales_-5379446518771769392.csv')
+    data_dir / 'Household_income/MSOA_(2011)_to_MSOA_(2021)_to_Local_Authority_District_(2022)_Lookup_for_England_and_Wales_-5379446518771769392.csv')
 all_msoas = all_msoas.drop(columns=["LAD22NMW", "ObjectId"], errors="ignore")
 
 # Filter to only Greater London area LSOAs.
@@ -94,7 +95,6 @@ df_lsoa_income.drop(columns=['MSOA21CD'], inplace=True)
 df_lsoa_income.sort_values(by=['LSOA code 2021', 'Year', 'Month'], inplace=True)
 
 # Load the baseline dataset and merge with the created income dataframe.
-data_dir = Path(__file__).resolve().parent.parent
 baseline_file = data_dir / 'Base/baseline_dataset.csv'
 baseline = pd.read_csv(baseline_file,
                        usecols=['LSOA code 2021', 'Year', 'Month'])
@@ -132,5 +132,5 @@ income_interp = income_interp.rename(columns={'Total annual income (£)': 'Total
                                               })
 
 # Save the estimated dataset to CSV.
-income_interp.to_csv('household_income_finalized.csv', index=False)
+income_interp.to_csv(data_dir / 'Household_income/household_income_finalized.csv', index=False)
 print(income_interp.info())

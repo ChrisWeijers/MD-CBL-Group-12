@@ -18,22 +18,22 @@ baseline.drop(columns=['LSOA code 2011', 'LSOA name 2021', 'Change Indicator'], 
 baseline = baseline.drop_duplicates(subset=['LSOA code 2021', 'Year', 'Month'], keep='first')
 
 # Load the other datasets
-burglary_lag = pd.read_csv(data_dir / 'Burglary lag/burglary_lag_finalized.csv')
-covid = pd.read_csv(data_dir / 'Covid-19/covid-19_finalized.csv')
+burglary_lag = pd.read_csv(data_dir / 'Burglary_lag/burglary_lag_finalized.csv')
+covid = pd.read_csv(data_dir / 'Covid_19/covid-19_finalized.csv')
 crimes = pd.read_csv(data_dir / 'Crimes/crimes_finalized.csv')
 daylight = pd.read_csv(data_dir / 'Daylight/daylight_finalized.csv')
 education = pd.read_csv(data_dir / 'Education/education_finalized.csv')
-holidays = pd.read_csv(data_dir / 'Holidays and celebrations/holidays_finalized.csv')
-hours_worked = pd.read_csv(data_dir / 'Hours worked/hours_worked_finalized.csv')
-household_income = pd.read_csv(data_dir / 'Household income/household_income_finalized.csv')
+holidays = pd.read_csv(data_dir / 'Holidays_and_celebrations/holidays_finalized.csv')
+hours_worked = pd.read_csv(data_dir / 'Hours_worked/hours_worked_finalized.csv')
+household_income = pd.read_csv(data_dir / 'Household_income/household_income_finalized.csv')
 imd = pd.read_csv(data_dir / 'IMD/imd_finalized.csv')
-landuse = pd.read_csv(data_dir / 'Land use/landuse_finalized.csv')
+landuse = pd.read_csv(data_dir / 'Land_use/landuse_finalized.csv')
 population = pd.read_csv(data_dir / 'Population/population_finalized.csv')
-population_density = pd.read_csv(data_dir / 'Population density/population_density_finalized.csv')
+population_density = pd.read_csv(data_dir / 'Population_density/population_density_finalized.csv')
 precipitation = pd.read_csv(data_dir / 'Precipitation/precipitation_finalized.csv')
 smoothed_burglaries = pd.read_csv(data_dir / 'Smoothed burglaries/smoothed_burglaries_finalized.csv')
 standard_deviation = pd.read_csv(data_dir / 'Standard deviation/rolling_std_finalized.csv')
-time_encoding = pd.read_csv(data_dir / 'Time encoding/time_encoding_finalized.csv')
+time_encoding = pd.read_csv(data_dir / 'Time_encoding/time_encoding_finalized.csv')
 
 # Join all datasets
 data = baseline.merge(burglary_lag, on=['Year','Month','LSOA code 2021'], how='left')
@@ -163,7 +163,7 @@ test_data.rename(columns={'Predicted Incident Count': 'Predicted burglary count'
 # print('Model saved.')
 
 # # Load the mapping file and rename its columns
-# mapping = pd.read_csv(data_dir / 'LSOA changes/london_lsoa11_lsoa21_lad22_ward24.csv')
+# mapping = pd.read_csv(data_dir / 'LSOA_changes/london_lsoa11_lsoa21_lad22_ward24.csv')
 # mapping = mapping.rename(columns={
 #     'LSOA21CD': 'LSOA code 2021',
 #     'LSOA21NM': 'LSOA name 2021',

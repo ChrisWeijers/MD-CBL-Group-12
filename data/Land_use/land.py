@@ -6,7 +6,7 @@ from pathlib import Path
 
 # Path to the folder containing the borough shapefiles
 data_dir = Path(__file__).resolve().parent.parent
-borough_folder = data_dir / 'LSOA boundaries/LB_shp'
+borough_folder = data_dir / 'LSOA_boundaries/LB_shp'
 
 # Load all shapefiles in the borough folder and combine them
 shapefile_pattern = os.path.join(borough_folder, "*.shp")
@@ -18,16 +18,16 @@ lsoas_gdf.rename(columns={"lsoa21cd": "LSOA code 2021"}, inplace=True)
 lsoas_gdf = lsoas_gdf.to_crs("EPSG:27700")
 
 # Path to the landuse polygons shapefile
-landuse_shp = r"greater-london-latest-free.shp/gis_osm_landuse_a_free_1.shp"
+landuse_shp = data_dir / "Land_use/greater-london-latest-free.shp/gis_osm_landuse_a_free_1.shp"
 landuse_col = "fclass" 
 
 # Path to the water polygons shapefile
-water_shp = r"greater-london-latest-free.shp/gis_osm_water_a_free_1.shp"
+water_shp = data_dir / "Land_use/greater-london-latest-free.shp/gis_osm_water_a_free_1.shp"
 
 # Desired projected CRS
 target_crs = "EPSG:27700"
 
-# Load and reproject LSOA boundaries
+# Load and reproject LSOA_boundaries
 gdf_lsoa = lsoas_gdf[["LSOA code 2021", "geometry"]].copy()
 if gdf_lsoa.crs.to_string() != target_crs:
     gdf_lsoa = gdf_lsoa.to_crs(target_crs)
@@ -180,5 +180,5 @@ baseline = pd.read_csv(baseline_file, dtype={"LSOA code 2021": str})
 merged = baseline.merge(pivot, on="LSOA code 2021", how="left")
 
 # Save the merged result to CSV
-merged.to_csv("landuse_finalized.csv", index=False)
+merged.to_csv(data_dir / "Land_use/landuse_finalized.csv", index=False)
 print(merged.head())

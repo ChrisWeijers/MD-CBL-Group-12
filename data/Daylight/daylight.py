@@ -52,5 +52,5 @@ merged = baseline.merge(df, on=["Year", "Month"], how="left")
 merged = merged.drop(columns=["LSOA code 2011", "LSOA name 2021", "Change Indicator"], errors="ignore")
 
 # Save the merged dataset to CSV
-merged.to_csv("daylight_finalized.csv", index=False)
+merged.to_csv(data_dir / "Daylight/daylight_finalized.csv", index=False)
 print(merged.head())

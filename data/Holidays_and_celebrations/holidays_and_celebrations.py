@@ -215,7 +215,7 @@ final = pd.merge(baseline, counts, on=["Year", "Month"], how="left")
 final.fillna(0, inplace=True)
 
 # Save the result
-final.to_csv("holidays_finalized.csv", index=False)
+final.to_csv(data_dir / "Holidays_and_celebrations/holidays_finalized.csv", index=False)
 print(final.head())
 
 # # List all event dates so you know exactly which days were used

@@ -10,5 +10,5 @@ baseline.drop(columns=['LSOA code 2011', 'LSOA name 2021', 'Change Indicator'], 
 baseline["Month encoding (sin)"] = np.sin(2 * np.pi * baseline["Month"] / 12).round(4)
 baseline["Month encoding (cos)"] = np.cos(2 * np.pi * baseline["Month"] / 12).round(4)
 
-baseline.to_csv('time_encoding_finalized.csv', index=False)
+baseline.to_csv(data_dir / 'Time_encoding/time_encoding_finalized.csv', index=False)
 print(baseline.head(20))

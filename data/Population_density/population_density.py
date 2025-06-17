@@ -3,8 +3,10 @@ import numpy as np
 from scipy.interpolate import interp1d
 from pathlib import Path
 
+data_dir = Path(__file__).resolve().parent.parent
+
 # Load the population density data
-density_raw = pd.read_excel("populationdensity20112022.xlsx", sheet_name="Mid-2011 to mid-2022 LSOA 2021")
+density_raw = pd.read_excel(data_dir / "Population_density/populationdensity20112022.xlsx", sheet_name="Mid-2011 to mid-2022 LSOA 2021")
 density_raw.rename(columns={"LSOA 2021 Code": "LSOA code 2021"}, inplace=True)
 
 # For each year 2011 to 2022, extract the density values and assign Month = 6
@@ -22,7 +24,6 @@ for yr in range(2011, 2023):
 density_all = pd.concat(density_list, ignore_index=True)
 
 # Merge with the baseline dataset that contains every LSOA, Year & Month combination
-data_dir = Path(__file__).resolve().parent.parent
 baseline_file = data_dir / 'Base/baseline_dataset.csv'
 baseline = pd.read_csv(baseline_file)
 density_combined = baseline.merge(density_all, on=["LSOA code 2021", "Year", "Month"], how="left")
@@ -49,5 +50,5 @@ density_interp = density_combined.groupby("LSOA code 2021").apply(interpolate_de
 density_interp.drop(columns=['LSOA code 2011', 'LSOA name 2021', 'Change Indicator', 'time'], inplace=True)
 
 # Save the finalized population density data
-density_interp.to_csv("population_density_finalized.csv", index=False)
+density_interp.to_csv(data_dir / "Population_density/population_density_finalized.csv", index=False)
 print(density_interp.head())

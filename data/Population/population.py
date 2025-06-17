@@ -3,11 +3,13 @@ import numpy as np
 from scipy.interpolate import interp1d
 from pathlib import Path
 
+data_dir = Path(__file__).resolve().parent.parent
+
 # 1. Load Population Data from Excel sheets
 pop_files = [
-    "sapelsoasyoa20112014.xlsx",
-    "sapelsoasyoa20152018.xlsx",
-    "sapelsoasyoa20192022.xlsx"
+    data_dir / "Population/sapelsoasyoa20112014.xlsx",
+    data_dir / "Population/sapelsoasyoa20152018.xlsx",
+    data_dir / "Population/sapelsoasyoa20192022.xlsx"
 ]
 
 sheet_names_list = [
@@ -81,7 +83,6 @@ pop_june = pop_june[pop_columns]
 print("Step 3 done")
 
 # 4. Merge the Population Data with the Baseline Dataset
-data_dir = Path(__file__).resolve().parent.parent
 baseline_file = data_dir / 'Base/baseline_dataset.csv'
 baseline = pd.read_csv(baseline_file)
 baseline["LSOA code 2021"] = baseline["LSOA code 2021"].astype(str)
@@ -170,5 +171,5 @@ population.rename(columns={"Percentage of males": "Males (%)"}, inplace=True)
 print("Step 7 done")
 
 # Save the finalized population data to a CSV file
-population.to_csv("population_finalized.csv", index=False)
+population.to_csv(data_dir / "Population/population_finalized.csv", index=False)
 print(population.head())

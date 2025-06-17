@@ -17,29 +17,31 @@ from tqdm import tqdm
 
 print('Preparing data...')
 # Load the baseline dataset
-data_dir = Path(__file__).resolve().parent.parent.parent / 'data/'
+base_dir = Path(__file__).resolve().parent.parent
+data_dir = base_dir / 'data/'
+model_dir = base_dir / 'XGBoost_Models/'
 baseline_file = data_dir / 'Base/baseline_dataset.csv'
 baseline = pd.read_csv(baseline_file)
 baseline.drop(columns=['LSOA code 2011', 'LSOA name 2021', 'Change Indicator'], inplace=True, errors='ignore')
 baseline = baseline.drop_duplicates(subset=['LSOA code 2021', 'Year', 'Month'], keep='first')
 
 # Load the other datasets
-burglary_lag = pd.read_csv(data_dir / 'Burglary lag/burglary_lag_finalized.csv')
-covid = pd.read_csv(data_dir / 'Covid-19/covid-19_finalized.csv')
+burglary_lag = pd.read_csv(data_dir / 'Burglary_lag/burglary_lag_finalized.csv')
+covid = pd.read_csv(data_dir / 'Covid_19/covid-19_finalized.csv')
 crimes = pd.read_csv(data_dir / 'Crimes/crimes_finalized.csv')
 daylight = pd.read_csv(data_dir / 'Daylight/daylight_finalized.csv')
 education = pd.read_csv(data_dir / 'Education/education_finalized.csv')
-holidays = pd.read_csv(data_dir / 'Holidays and celebrations/holidays_finalized.csv')
-hours_worked = pd.read_csv(data_dir / 'Hours worked/hours_worked_finalized.csv')
-household_income = pd.read_csv(data_dir / 'Household income/household_income_finalized.csv')
+holidays = pd.read_csv(data_dir / 'Holidays_and_celebrations/holidays_finalized.csv')
+hours_worked = pd.read_csv(data_dir / 'Hours_worked/hours_worked_finalized.csv')
+household_income = pd.read_csv(data_dir / 'Household_income/household_income_finalized.csv')
 imd = pd.read_csv(data_dir / 'IMD/imd_finalized.csv')
-landuse = pd.read_csv(data_dir / 'Land use/landuse_finalized.csv')
+landuse = pd.read_csv(data_dir / 'Land_use/landuse_finalized.csv')
 population = pd.read_csv(data_dir / 'Population/population_finalized.csv')
-population_density = pd.read_csv(data_dir / 'Population density/population_density_finalized.csv')
+population_density = pd.read_csv(data_dir / 'Population_density/population_density_finalized.csv')
 precipitation = pd.read_csv(data_dir / 'Precipitation/precipitation_finalized.csv')
 smoothed_burglaries = pd.read_csv(data_dir / 'Smoothed burglaries/smoothed_burglaries_finalized.csv')
-standard_deviation = pd.read_csv(data_dir / 'Standard deviation/rolling_std_finalized.csv')
-time_encoding = pd.read_csv(data_dir / 'Time encoding/time_encoding_finalized.csv')
+standard_deviation = pd.read_csv(data_dir / 'Standard_deviation/rolling_std_finalized.csv')
+time_encoding = pd.read_csv(data_dir / 'Time_encoding/time_encoding_finalized.csv')
 
 # Join all datasets
 data = baseline.merge(burglary_lag, on=['Year','Month','LSOA code 2021'], how='left')
@@ -71,6 +73,10 @@ data['LSOA encoded'] = data['LSOA code 2021'].astype('category').cat.codes
 # Make sure the data is properly formatted
 invalid_cols = ['LSOA code 2011', 'LSOA name 2021', 'Change Indicator']
 data = data.drop(columns=invalid_cols, errors='ignore')
+
+# Rename columns for XGBoost compatibility
+data.columns = data.columns.astype(str).str.replace(r'<', 'less than', regex=True)
+data.columns = data.columns.astype(str).str.replace(r'>', 'more than', regex=True)
 
 # ------------------------------------------
 # Split Data into Training and Forecast Sets
@@ -130,7 +136,7 @@ best_model = XGBRegressor(random_state=42, **study.best_params)
 best_model.fit(X_full, y_full)
 
 # Save the best model
-best_model.save_model('all_data_xgboost_model.json')
+best_model.save_model(model_dir / 'all_data_xgboost_model.json')
 print('Model saved.')
 
 # -------------
@@ -143,14 +149,14 @@ expl = shap.TreeExplainer(best_model, data=bg)
 sv = expl.shap_values(X_full)
 shap.summary_plot(sv, X_full, plot_type="bar", show=False)
 plt.xlabel("Mean absolute SHAP value")
-plt.savefig("new_shap.png", dpi=300)
+plt.savefig(model_dir / "new_shap.png", dpi=300)
 plt.close()
 
 # --------------------------------------------------------------------------
 # Add missing crime and precipitation data by calculating the 5-year average
 # --------------------------------------------------------------------------
 
-print("Calculating missing crime and precipitaiton data...")
+print("Calculating missing crime and precipitation data...")
 
 # Define the crime type columns you want to process.
 data_types = ["Anti-social behaviour count", "Bicycle theft count", "Criminal damage and arson count",
@@ -269,9 +275,7 @@ def get_smoothed_value(hist_df, dt, lsoa, window,code_to_index, neighbor_dict, i
     return float(np.mean(vals)) if vals else float(expected)
 
 # Set the path to your LSOA shapefiles folder (adjust if needed)
-project_root = Path(__file__).resolve().parents[2]
-data_dir   = project_root / "data"
-shp_folder = data_dir / "LSOA boundaries" / "LB_shp"
+shp_folder = data_dir / "LSOA_boundaries" / "LB_shp"
 shp_files = glob.glob(str(shp_folder / "*.shp"))
 gdf_list = [gpd.read_file(f) for f in shp_files]
 if not gdf_list:
@@ -351,10 +355,10 @@ for _, row in tqdm(forecast_df.iterrows(), total=forecast_df.shape[0], desc="For
 print('Saving predictions...')
 forecast = pd.DataFrame(results)
 forecast = forecast.sort_values(["LSOA code 2021", "Year", "Month"])
-forecast.to_csv("lsoa_all_data_predictions.csv", index=False)
+forecast.to_csv(model_dir / "/lsoa_all_data_predictions.csv", index=False)
 
 # Load the mapping file and rename its columns
-mapping = pd.read_csv(data_dir / 'LSOA changes/london_lsoa11_lsoa21_lad22_ward24.csv')
+mapping = pd.read_csv(data_dir / 'LSOA_changes/london_lsoa11_lsoa21_lad22_ward24.csv')
 mapping = mapping.rename(columns={
     'LSOA21CD': 'LSOA code 2021',
     'LSOA21NM': 'LSOA name 2021',
@@ -368,7 +372,7 @@ forecast = forecast.merge(lsoa_mapping, on='LSOA code 2021', how='left')
 
 # Save a CSV without attributes used to make the predictions
 selected_cols = forecast[['LSOA code 2021', 'LSOA name 2021', 'Year', 'Month', 'Predicted burglary count']]
-selected_cols.to_csv('lsoa_predictions.csv', index=False)
+selected_cols.to_csv(base_dir / 'app/lsoa_predictions.csv', index=False)
 
 # Select the ward information columns directly from mapping
 ward_mapping = mapping[['LSOA code 2021', 'Ward code 2024', 'Ward name 2024']]
@@ -379,5 +383,5 @@ ward_preds = selected_cols.merge(ward_mapping, on='LSOA code 2021', how='left')
 # Aggregate the predicted burglary counts to wards by Year and Month
 ward_aggr = ward_preds.groupby(['Ward code 2024', 'Ward name 2024', 'Year', 'Month'], as_index=False)['Predicted burglary count'].sum()
 ward_aggr = ward_aggr[['Ward code 2024', 'Ward name 2024', 'Year', 'Month', 'Predicted burglary count']]
-ward_aggr.to_csv('ward_predictions.csv', index=False)
+ward_aggr.to_csv(base_dir / 'app/ward_predictions.csv', index=False)
 print('Predictions saved.')

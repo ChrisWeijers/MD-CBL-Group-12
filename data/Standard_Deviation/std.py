@@ -65,5 +65,5 @@ data_with_stds = baseline.merge(
 data_with_stds = data_with_stds.drop(columns=["LSOA code 2011", "LSOA name 2021", "Change Indicator"])
 
 # Save the dataframe to csv
-data_with_stds.to_csv("rolling_std_finalized.csv", index=False)
+data_with_stds.to_csv(data_dir / "Standard_Deviation/rolling_std_finalized.csv", index=False)
 print(data_with_stds.head(20))

@@ -2,8 +2,10 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
+data_dir = Path(__file__).resolve().parent.parent
+
 # Load the hours worked data for 2011 and clean it up
-hw_2011 = pd.read_csv('hours_worked_2011.csv')
+hw_2011 = pd.read_csv(data_dir / 'Hours_worked/hours_worked_2011.csv')
 hw_2011 = hw_2011.rename(columns={
     '2011 super output area - lower layer': 'LSOA name 2011',
     'mnemonic': 'LSOA code 2011',
@@ -14,7 +16,6 @@ hw_2011 = hw_2011.rename(columns={
 })
 
 # Load the baseline dataset for mapping LSOA codes from 2011 to 2021
-data_dir = Path(__file__).resolve().parent.parent
 baseline_file = data_dir / 'Base/baseline_dataset.csv'
 mapping = pd.read_csv(baseline_file)
 
@@ -59,7 +60,7 @@ hw_2011_finalized = pd.merge(baseline, combined_quals, on=["LSOA code 2021", "Ye
 hw_2011_finalized = hw_2011_finalized.drop(columns=['LSOA code 2011', 'LSOA name 2021', 'Change Indicator'], errors='ignore')
 
 # Load the 2021 hours worked data and clean it up
-hw_2021 = pd.read_csv('hours_worked_2021.csv')
+hw_2021 = pd.read_csv(data_dir / 'Hours_worked/hours_worked_2021.csv')
 hw_2021 = hw_2021.rename(columns={
     '2021 super output area - lower layer': 'LSOA name 2021',
     'mnemonic': 'LSOA code 2021',
@@ -127,5 +128,5 @@ def linear_estimation(group):
 df_est = hw_2011_2021_finalized.groupby("LSOA code 2021", group_keys=False).apply(linear_estimation)
 
 # Save the final estimated dataset.
-df_est.to_csv("hours_worked_finalized.csv", index=False)
+df_est.to_csv(data_dir / "Hours_worked/hours_worked_finalized.csv", index=False)
 print(df_est.head())

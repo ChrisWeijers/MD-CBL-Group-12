@@ -12,7 +12,7 @@ from pathlib import Path
 # Load the necessary data files
 data_dir = Path(__file__).resolve().parent.parent
 baseline_csv = data_dir / 'Base/baseline_dataset.csv'
-shp_folder = data_dir / 'LSOA boundaries/LB_shp'
+shp_folder = data_dir / 'LSOA_boundaries/LB_shp'
 crimes_csv = data_dir / 'Crimes/crimes_finalized.csv'
 
 # Set the data for plotting
