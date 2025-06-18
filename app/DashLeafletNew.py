@@ -15,6 +15,8 @@ import calendar
 import DateTime as dt
 import numpy as np
 from pathlib import Path
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 base_dir = Path(__file__).resolve().parent.parent
 
@@ -98,6 +100,8 @@ dfw['Recommended policing hours per week'] = dfw['Recommended policing hours per
 code_to_name = dict(zip(merged['lsoa21cd'], merged['lsoa21nm']))
 ward_code_to_name = dict(zip(merged['WD24CD'], merged['WD24NM']))
 code_to_name.update(ward_code_to_name)
+
+
 
 # new database for Data-Table
 # Add 'level' column to distinguish rows
@@ -236,7 +240,6 @@ app.layout = html.Div([
             dcc.Graph(id="graph")
         ], style={'width': '50%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '10px'}),
     ]),
-
     # Bottom section: Data Table
     html.Div([
         html.H2("Burglary Table"),
@@ -583,11 +586,7 @@ def update(feature, ward_clicks, lsoa_clicks, slider_range, dropdown, mapdata):
     )
 
     df_sel = filtered_df.copy()
-    title = (
-        f"Predicted Burglaries – {code_to_name[dropdown]}\n"
-        f'({all_months.min().strftime("%b %Y")}–{all_months.max().strftime("%b %Y")})'
-    )
-
+    title = f'Predicted Burglaries for All London\n({all_months.min().strftime("%b %Y")}–{all_months.max().strftime("%b %Y")})'
 
     # Summarize and align predictions across full timeline
     ts = (
