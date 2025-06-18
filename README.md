@@ -41,7 +41,7 @@ This will take roughly 30-45 minutes, and automatically opens the dashboard.
 ### 1. Data Collection
 - `data_download.py`: Downloads raw datasets from Google Drive.
 
-### 2. Enriching with External Data
+### 2. 📁data: Enriching with External Data
 All data is preprocessed, cleaned, formatted and estimated in the `data/` directory. 
 ```
 data/
@@ -66,11 +66,11 @@ data/
 └── Time_encoding/               # sine/cosine month encoding
 ```
 
-### 3. Burglary Prediction Models
+### 3. 📁XGBoost_models: Burglary Prediction Models
 - `all_data_xgboost.py`: Trains model and predicts monthly burglary count.
 - `all_data_xgboost_test.py`: Trains and test the model.
 
-### 4. Dashboard Preparation
+### 4. 📁app: Dashboard Preparation
 - `Dashboard_GeoJSONCombine.py`: Merges shapefiles into a single GeoJSON for mapping.
-- `DashLeafletNew.py`: Generates an interactive dashboard displaying predictions and officer allocation by LSOA, clicking LSOA gives more information.
+- `DashLeafletNew.py`: Generates an interactive dashboard displaying burglary count predictions and policing hours distribution by LSOA or ward.
 
