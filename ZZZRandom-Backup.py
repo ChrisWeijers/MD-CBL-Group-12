@@ -20,71 +20,94 @@ data = {
 index = [
     "During the week",
     "At the weekend",
-    "Morning/Afternoon",
+    "Morning/Afternoon 2",
     "Morning",
     "Afternoon",
-    "Morning/afternoon (unsure which)",
-    "Evening/Night",
+    "Morning/afternoon",
+    "Evening/Night 2",
     "Evening",
     "Early evening",
     "Late evening",
     "Night",
-    "Evening/Night (unsure which)",
+    "Evening/Night",
 ]
 
 # Create initial DataFrame and transpose
-df = pd.DataFrame(data, index=index)
-df_T = df.T
+df_grouped_stacked_chart = pd.DataFrame(data, index=index)
+df_grouped_stacked_chart_T = df_grouped_stacked_chart.T
 
 # Compute average row
-df_T.loc["Apr 2013 to Mar 2024"] = df_T.mean()
-row = df_T.loc["Apr 2013 to Mar 2024"]
+df_grouped_stacked_chart_T.loc["Apr 2013 to Mar 2024"] = df_grouped_stacked_chart_T.mean()
+row = df_grouped_stacked_chart_T.loc["Apr 2013 to Mar 2024"]
 
 # Extract the reference values
 total_week = row["During the week"]
 total_weekend = row["At the weekend"]
 
-# Define time labels
+# Define time labels to visualize
 time_labels = [
-    "Morning/Afternoon",
     "Morning",
     "Afternoon",
-    "Morning/afternoon (unsure which)",
-    "Evening/Night",
-    "Evening",
+    "Morning/afternoon",
     "Early evening",
     "Late evening",
     "Night",
-    "Evening/Night (unsure which)",
+    "Evening/Night",
 ]
 
+# Build clustered bar chart data
 clustered_data = []
 
-# Create a separate bar for each label (grouped by time label)
 for i, label in enumerate(time_labels):
-    during_val = row[label] * total_week / 100
-    weekend_val = row[label] * total_weekend / 100
-    clustered_data.append(
-        go.Bar(
-            name=label,
-            x=["During the week", "At the weekend"],
-            y=[during_val, weekend_val],
-            offsetgroup=str(i),  # Unique offset for clustering
+    during_val = (row[label] * total_week / 100) / 5  # average per weekday
+    weekend_val = (row[label] * total_weekend / 100) / 2  # average per weekend day
+
+    if label == "Late evening":
+        early_during = (row["Early evening"] * total_week / 100) / 5
+        early_weekend = (row["Early evening"] * total_weekend / 100) / 2
+
+        clustered_data.append(
+            go.Bar(
+                name="Late evening",
+                x=["During the week", "At the weekend"],
+                y=[during_val, weekend_val],
+                base=[early_during, early_weekend],
+                offsetgroup="evening-stack",
+                legendgroup="evening-stack"
+            )
         )
-    )
+    elif label == "Early evening":
+        clustered_data.append(
+            go.Bar(
+                name="Early evening",
+                x=["During the week", "At the weekend"],
+                y=[during_val, weekend_val],
+                offsetgroup="evening-stack",
+                legendgroup="evening-stack"
+            )
+        )
+    else:
+        clustered_data.append(
+            go.Bar(
+                name=label,
+                x=["During the week", "At the weekend"],
+                y=[during_val, weekend_val],
+                offsetgroup=str(i),
+            )
+        )
 
 # Dash app layout
 app = dash.Dash(__name__)
 app.layout = html.Div([
-    html.H2("Clustered Bar Chart: Time of Day Breakdown"),
+    html.H2("Clustered Bar Chart: Time of Day Breakdown (Average per Day)"),
     dcc.Graph(
         id='clustered-bar-chart',
         figure={
             'data': clustered_data,
             'layout': go.Layout(
-                barmode='group',  # group bars side by side
+                barmode='group',
                 xaxis={'title': 'Day Type'},
-                yaxis={'title': 'Percentage Breakdown'},
+                yaxis={'title': 'Average Percentage per Day'},
                 legend={'x': 1, 'y': 1},
                 margin={'b': 100}
             )

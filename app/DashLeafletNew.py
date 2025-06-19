@@ -17,6 +17,7 @@ import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.graph_objs as go
 
 base_dir = Path(__file__).resolve().parent.parent
 
@@ -101,7 +102,98 @@ code_to_name = dict(zip(merged['lsoa21cd'], merged['lsoa21nm']))
 ward_code_to_name = dict(zip(merged['WD24CD'], merged['WD24NM']))
 code_to_name.update(ward_code_to_name)
 
+# Define the data
+data_grouped_stacked_chart = {
+    "Apr 2013 to Mar 2014": [67, 33, 41, 8, 23, 10, 59, 30, 20, 10, 24, 6],
+    "Apr 2014 to Mar 2015": [68, 32, 41, 10, 23, 8, 59, 27, 16, 12, 22, 10],
+    "Apr 2015 to Mar 2016": [66, 34, 39, 8, 22, 9, 61, 28, 18, 9, 27, 6],
+    "Apr 2016 to Mar 2017": [70, 30, 43, 10, 23, 10, 57, 26, 16, 9, 27, 5],
+    "Apr 2017 to Mar 2018": [70, 30, 39, 10, 20, 9, 61, 30, 19, 11, 26, 5],
+    "Apr 2018 to Mar 2019": [67, 33, 42, 10, 23, 9, 58, 30, 21, 9, 23, 5],
+    "Apr 2019 to Mar 2020": [70, 30, 38, 8, 20, 9, 62, 32, 19, 13, 26, 3],
+    "Apr 2022 to Mar 2023": [71, 29, 32, 7, 19, 6, 68, 32, 19, 14, 28, 7],
+    "Apr 2023 to Mar 2024": [69, 31, 40, 6, 29, 4, 60, 26, 15, 10, 33, 1],
+}
 
+# Define the index (row labels)
+index_data_grouped_stacked_chart = [
+    "During the week",
+    "At the weekend",
+    "Morning/Afternoon 2",
+    "Morning",
+    "Afternoon",
+    "Morning/afternoon",
+    "Evening/Night 2",
+    "Evening",
+    "Early evening",
+    "Late evening",
+    "Night",
+    "Evening/Night",
+]
+
+# Create initial DataFrame and transpose
+df_grouped_stacked_chart = pd.DataFrame(data_grouped_stacked_chart, index=index_data_grouped_stacked_chart)
+df_grouped_stacked_chart_T = df_grouped_stacked_chart.T
+
+# Compute average row
+df_grouped_stacked_chart_T.loc["Apr 2013 to Mar 2024"] = df_grouped_stacked_chart_T.mean()
+row_df_grouped_stacked_chart_T= df_grouped_stacked_chart_T.loc["Apr 2013 to Mar 2024"]
+
+# Extract the reference values
+total_week_df_grouped_stacked_chart_T = row_df_grouped_stacked_chart_T["During the week"]
+total_weekend_df_grouped_stacked_chart_T = row_df_grouped_stacked_chart_T["At the weekend"]
+
+# Define time labels to visualize
+time_labels_df_grouped_stacked_chart_T = [
+    "Morning",
+    "Afternoon",
+    "Morning/afternoon",
+    "Early evening",
+    "Late evening",
+    "Night",
+    "Evening/Night",
+]
+
+# Build clustered bar chart data
+clustered_data_df_grouped_stacked_chart_T = []
+
+for i, label in enumerate(time_labels_df_grouped_stacked_chart_T):
+    during_val_df_grouped_stacked_chart_T = (row_df_grouped_stacked_chart_T[label] * total_week_df_grouped_stacked_chart_T / 100) / 5  # average per weekday
+    weekend_val_df_grouped_stacked_chart_T = (row_df_grouped_stacked_chart_T[label] * total_weekend_df_grouped_stacked_chart_T / 100) / 2  # average per weekend day
+
+    if label == "Late evening":
+        early_during_df_grouped_stacked_chart_T = (row_df_grouped_stacked_chart_T["Early evening"] * total_week_df_grouped_stacked_chart_T / 100) / 5
+        early_weekend_df_grouped_stacked_chart_T = (row_df_grouped_stacked_chart_T["Early evening"] * total_weekend_df_grouped_stacked_chart_T / 100) / 2
+
+        clustered_data_df_grouped_stacked_chart_T.append(
+            go.Bar(
+                name="Late evening",
+                x=["During the week", "At the weekend"],
+                y=[during_val_df_grouped_stacked_chart_T, weekend_val_df_grouped_stacked_chart_T],
+                base=[early_during_df_grouped_stacked_chart_T, early_weekend_df_grouped_stacked_chart_T],
+                offsetgroup="evening-stack",
+                legendgroup="evening-stack"
+            )
+        )
+    elif label == "Early evening":
+        clustered_data_df_grouped_stacked_chart_T.append(
+            go.Bar(
+                name="Early evening",
+                x=["During the week", "At the weekend"],
+                y=[during_val_df_grouped_stacked_chart_T, weekend_val_df_grouped_stacked_chart_T],
+                offsetgroup="evening-stack",
+                legendgroup="evening-stack"
+            )
+        )
+    else:
+        clustered_data_df_grouped_stacked_chart_T.append(
+            go.Bar(
+                name=label,
+                x=["During the week", "At the weekend"],
+                y=[during_val_df_grouped_stacked_chart_T, weekend_val_df_grouped_stacked_chart_T],
+                offsetgroup=str(i),
+            )
+        )
 
 # new database for Data-Table
 # Add 'level' column to distinguish rows
@@ -240,6 +332,20 @@ app.layout = html.Div([
             dcc.Graph(id="graph")
         ], style={'width': '50%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '10px'}),
     ]),
+    html.H2("Clustered Bar Chart: Time of Day Breakdown (Average per Day)"),
+    dcc.Graph(
+        id='clustered-bar-chart',
+        figure={
+            'data': clustered_data_df_grouped_stacked_chart_T,
+            'layout': go.Layout(
+                barmode='group',
+                xaxis={'title': 'Day Type'},
+                yaxis={'title': 'Average Percentage per Day'},
+                legend={'x': 1, 'y': 1},
+                margin={'b': 100}
+            )
+        }
+    ),
     # Bottom section: Data Table
     html.Div([
         html.H2("Burglary Table"),
