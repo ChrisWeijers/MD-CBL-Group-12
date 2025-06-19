@@ -27,6 +27,16 @@ This project aims to predict the amount of police officers needed in each LSOA i
     ```bash
     data/Crimes/
     ```
+4. **Download Land Use Data**:
+
+    The files used for the 'Land Use' data from [Geofabrik](https://download.geofabrik.de/europe/united-kingdom/england/greater-london.html) are too big for GitHub and need to be downloaded.
+
+    [Download the data from Geofabrik](https://download.geofabrik.de/europe/united-kingdom/england/greater-london-latest-free.shp.zip) 
+
+    After downloading, place the file in the following directory, and ensist it has the name 'Original Dataset':
+    ```bash
+    data/Land_use/
+    ```
 You are now fully set to run the project!
 ## Running the project
 
@@ -42,29 +52,27 @@ This will take roughly 30-45 minutes, and automatically opens the dashboard.
 - `data_download.py`: Downloads raw datasets from Google Drive.
 
 ### 2. 📁data: Enriching with External Data
-All data is preprocessed, cleaned, formatted and estimated in the `data/` directory. 
-```
-data/
-└── Base/                        # Baseline data to be merged with all other datasets
-└── Burglary_lag/                # Lagged burglary counts, EMAs and SMAs
-└── Covid_19/                    # Covid-19 boolean
-└── Crimes/                      # Crime data
-└── Daylight/                    # Daylight duration data
-└── Education/                   # Education level data
-└── Holidays_and_celebrations/   # Public holidays and major event dates
-└── Hours_worked/                # Average working hours data
-└── Household_income/            # Household income data
-└── IMD/                         # Index of Multiple Deprivation (socioeconomic data)
-└── Land_use/                    # Geographic and land usage data
-└── LSOA_boundaries/             # Shapefiles of LSOAs
-└── LSOA_changes/                # Historical changes to LSOA definitions
-└── Population/                  # Total population data
-└── Population_density/          # Population density
-└── Precipitation/               # Rainfall data
-└── Smoothed burglaries/         # Smoothed burglary time series
-└── Standard_Deviation/          # Standard deviation of burglary counts over time
-└── Time_encoding/               # sine/cosine month encoding
-```
+All data is preprocessed, cleaned, formatted and estimated in the `data/` directory. Each folder loads and prepares different data. 
+
+- `Base/`: Baseline data to be merged with all other datasets
+- `Burglary_lag/`: Lagged burglary counts, EMAs and SMAs
+- `Covid_19/`: Covid-19 boolean
+- `Crimes/`: Crime data
+- `Daylight/`: Daylight duration data
+- `Education/`: Education level data
+- `Holidays_and_celebrations/`: Public holidays and major event dates
+- `Hours_worked/`: Average working hours data
+- `Household_income/`: Household income data
+- `IMD/`: Index of Multiple Deprivation (socioeconomic data)
+- `Land_use/`: Geographic and land usage data
+- `LSOA_boundaries/`: Shapefiles of LSOAs
+- `LSOA_changes/`: Historical changes to LSOA definitions
+- `Population/`: Total population data
+- `Population_density/`: Population density data
+- `Precipitation/`: Rainfall data
+- `Smoothed burglaries/`: Smoothed burglary time series
+- `Standard_Deviation/`: Standard deviation of burglary counts over time
+- `Time_encoding/`: sine/cosine month encoding
 
 ### 3. 📁XGBoost_models: Burglary Prediction Models
 - `all_data_xgboost.py`: Trains model and predicts monthly burglary count.
