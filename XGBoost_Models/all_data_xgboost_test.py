@@ -11,7 +11,7 @@ import seaborn as sns
 
 print('Preparing data...')
 # Load the baseline dataset
-data_dir = Path(__file__).resolve().parent.parent.parent / 'data/'
+data_dir = Path(__file__).resolve().parent.parent / 'data/'
 baseline_file = data_dir / 'Base/baseline_dataset.csv'
 baseline = pd.read_csv(baseline_file)
 baseline.drop(columns=['LSOA code 2011', 'LSOA name 2021', 'Change Indicator'], inplace=True, errors='ignore')
@@ -32,7 +32,7 @@ population = pd.read_csv(data_dir / 'Population/population_finalized.csv')
 population_density = pd.read_csv(data_dir / 'Population_density/population_density_finalized.csv')
 precipitation = pd.read_csv(data_dir / 'Precipitation/precipitation_finalized.csv')
 smoothed_burglaries = pd.read_csv(data_dir / 'Smoothed burglaries/smoothed_burglaries_finalized.csv')
-standard_deviation = pd.read_csv(data_dir / 'Standard deviation/rolling_std_finalized.csv')
+standard_deviation = pd.read_csv(data_dir / 'Standard_deviation/rolling_std_finalized.csv')
 time_encoding = pd.read_csv(data_dir / 'Time_encoding/time_encoding_finalized.csv')
 
 # Join all datasets
@@ -65,6 +65,10 @@ data = data[((data['Year'] < 2025) | ((data['Year'] == 2025) & (data['Month'] <=
 invalid_cols = ['LSOA code 2011', 'LSOA name 2021', 'Change Indicator']
 data = data.drop(columns=invalid_cols, errors='ignore')
 
+# Rename columns for XGBoost compatibility
+data.columns = data.columns.astype(str).str.replace(r'<', 'less than', regex=True)
+data.columns = data.columns.astype(str).str.replace(r'>', 'more than', regex=True)
+
 print('Splitting train and test data...')
 # Split the data into training (2010-2023) and testing (2024-2025) sets
 train_data = data[data['Year'] <= 2023].copy()
@@ -91,7 +95,7 @@ def objective(trial):
         'colsample_bytree': trial.suggest_float('colsample_bytree', 0, 1.0),
     }
 
-    tscv = TimeSeriesSplit(n_splits=5)
+    tscv = TimeSeriesSplit(n_splits=13)
     cv_scores = []
 
     for train_index, val_index in tscv.split(X_train):
