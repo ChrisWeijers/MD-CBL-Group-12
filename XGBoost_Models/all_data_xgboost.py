@@ -109,7 +109,7 @@ def objective(trial):
         'colsample_bytree': trial.suggest_float('colsample_bytree', 0, 1.0),
     }
 
-    tscv = TimeSeriesSplit(n_splits=5)
+    tscv = TimeSeriesSplit(n_splits=15)
     cv_scores = []
 
     for train_index, val_index in tscv.split(X_full):
