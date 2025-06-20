@@ -18,11 +18,11 @@ lsoas_gdf.rename(columns={"lsoa21cd": "LSOA code 2021"}, inplace=True)
 lsoas_gdf = lsoas_gdf.to_crs("EPSG:27700")
 
 # Path to the landuse polygons shapefile
-landuse_shp = data_dir / "Land_use/greater-london-latest-free.shp/gis_osm_landuse_a_free_1.shp"
+landuse_shp = data_dir / "Land_use/greater-london-latest-free/gis_osm_landuse_a_free_1.shp"
 landuse_col = "fclass" 
 
 # Path to the water polygons shapefile
-water_shp = data_dir / "Land_use/greater-london-latest-free.shp/gis_osm_water_a_free_1.shp"
+water_shp = data_dir / "Land_use/greater-london-latest-free/gis_osm_water_a_free_1.shp"
 
 # Desired projected CRS
 target_crs = "EPSG:27700"
