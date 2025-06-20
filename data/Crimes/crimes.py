@@ -113,5 +113,3 @@ def main():
     # Save the final dataset to a new CSV file
     full_data.to_csv(data_dir / 'Crimes/crimes_finalized.csv', index=False)
     print(full_data.head())
-
-main()
