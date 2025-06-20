@@ -1,42 +1,42 @@
 # 🚓 Police Force Allocation Prediction Model for the Metropolitan Police
 
-This project aims to predict the amount of police officers needed in each LSOA in London, to best reduce the amount of burglaries. The model first predicts the number of burglaries expected each month in every LSOA across London. Based on these predictions, it estimates the number of policing hours required in each area to minimize burglary rates effectively.
+This project aims to predict the amount of police officers needed in each LSOA in London, to best reduce the amount of burglaries. The model first predicts the number of burglaries expected each month in every LSOA across London. Based on these predictions, it calculates the number of policing hours required in each area to minimize burglary rates effectively.
 
 
 ## Getting Started
 
 1. **Clone the repository**:
 
-    Navigate to your desired directory and run:
-    ```bash
-    git clone https://github.com/ChrisWeijers/MD-CBL-Group-12.git
-    ```
+Navigate to your desired directory and run:
+```bash
+git clone https://github.com/ChrisWeijers/MD-CBL-Group-12.git
+```
 2. **Install dependencies**:
 
-    Navigate into the project directory and install all required Python packages:
-    ```bash
-    pip install -r requirements.txt
-    ```
+Navigate into the project directory and install all required Python packages:
+```bash
+pip install -r requirements.txt
+```
 3. **Download Police Data**:
 
-    We used crime data from [data.police.uk](https://data.police.uk). Since the specific dataset used in this project is not directly downloadable in a single click from the website, we've made it available via Google Drive for convenience. 
+We used crime data from [data.police.uk](https://data.police.uk). Since the specific dataset used in this project is not directly downloadable in a single click from the website, we've made it available via Google Drive for convenience. 
 
-    [Download the data from Google Drive](https://drive.google.com/drive/folders/1_W5TvYWFbiOBpO7Yk_TZkhqYYyT6Q00b?usp=share_link) 
+[Download the data from Google Drive](https://drive.google.com/drive/folders/1_W5TvYWFbiOBpO7Yk_TZkhqYYyT6Q00b?usp=share_link) 
 
-    After downloading, place the file in the following directory, and ensist it has the name 'Original Dataset':
-    ```bash
-    data/Crimes/
-    ```
+After downloading, place the file in the following directory, and ensist it has the name 'Original Dataset':
+```bash
+data/Crimes/
+```
 4. **Download Land Use Data**:
 
-    The files used for the 'Land Use' data from [Geofabrik](https://download.geofabrik.de/europe/united-kingdom/england/greater-london.html) are too big for GitHub and need to be downloaded.
+The files used for the 'Land Use' data from [Geofabrik](https://download.geofabrik.de/europe/united-kingdom/england/greater-london.html) are too big for GitHub and need to be downloaded.
 
-    [Download the data from Geofabrik](https://download.geofabrik.de/europe/united-kingdom/england/greater-london-latest-free.shp.zip) 
+[Download the data from Geofabrik](https://download.geofabrik.de/europe/united-kingdom/england/greater-london-latest-free.shp.zip) 
 
-    After downloading, place the file in the following directory, and ensist it has the name 'Original Dataset':
-    ```bash
-    data/Land_use/
-    ```
+After downloading, place the file in the following directory, and ensist it has the name 'Original Dataset':
+```bash
+data/Land_use/
+```
 You are now fully set to run the project!
 ## Running the project
 
@@ -81,4 +81,7 @@ All data is preprocessed, cleaned, formatted and estimated in the `data/` direct
 ### 4. 📁app: Dashboard Preparation
 - `Dashboard_GeoJSONCombine.py`: Merges shapefiles into a single GeoJSON for mapping.
 - `DashLeafletNew.py`: Generates an interactive dashboard displaying burglary count predictions and policing hours distribution by LSOA or ward.
+
+### 5. 📁visualizations: Burglary Visualizations
+- This directory contains some files which create visualizations. These visualizations are used for the report and presentations. 
 
