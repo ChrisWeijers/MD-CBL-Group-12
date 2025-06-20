@@ -116,18 +116,18 @@ data_grouped_stacked_chart = {
 
 # Define the index (row labels)
 index_data_grouped_stacked_chart = [
-    "During the week",
-    "At the weekend",
+    "Mon-Fri",
+    "Sat-Sun",
     "Morning/Afternoon 2",
     "Morning",
     "Afternoon",
-    "Morning/afternoon",
+    "Morning or afternoon",
     "Evening/Night 2",
     "Evening",
     "Early evening",
     "Late evening",
     "Night",
-    "Evening/Night",
+    "Evening or Night",
 ]
 
 # Create initial DataFrame and transpose
@@ -139,18 +139,18 @@ df_grouped_stacked_chart_T.loc["Apr 2013 to Mar 2024"] = df_grouped_stacked_char
 row_df_grouped_stacked_chart_T= df_grouped_stacked_chart_T.loc["Apr 2013 to Mar 2024"]
 
 # Extract the reference values
-total_week_df_grouped_stacked_chart_T = row_df_grouped_stacked_chart_T["During the week"]
-total_weekend_df_grouped_stacked_chart_T = row_df_grouped_stacked_chart_T["At the weekend"]
+total_week_df_grouped_stacked_chart_T = row_df_grouped_stacked_chart_T["Mon-Fri"]
+total_weekend_df_grouped_stacked_chart_T = row_df_grouped_stacked_chart_T["Sat-Sun"]
 
 # Define time labels to visualize
 time_labels_df_grouped_stacked_chart_T = [
     "Morning",
     "Afternoon",
-    "Morning/afternoon",
+    "Morning or afternoon",
     "Early evening",
     "Late evening",
     "Night",
-    "Evening/Night",
+    "Evening or Night",
 ]
 
 # Build clustered bar chart data
@@ -167,7 +167,7 @@ for i, label in enumerate(time_labels_df_grouped_stacked_chart_T):
         clustered_data_df_grouped_stacked_chart_T.append(
             go.Bar(
                 name="Late evening",
-                x=["During the week", "At the weekend"],
+                x=["Mon-Fri", "Sat-Sun"],
                 y=[during_val_df_grouped_stacked_chart_T, weekend_val_df_grouped_stacked_chart_T],
                 base=[early_during_df_grouped_stacked_chart_T, early_weekend_df_grouped_stacked_chart_T],
                 offsetgroup="evening-stack",
@@ -178,7 +178,7 @@ for i, label in enumerate(time_labels_df_grouped_stacked_chart_T):
         clustered_data_df_grouped_stacked_chart_T.append(
             go.Bar(
                 name="Early evening",
-                x=["During the week", "At the weekend"],
+                x=["Mon-Fri", "Sat-Sun"],
                 y=[during_val_df_grouped_stacked_chart_T, weekend_val_df_grouped_stacked_chart_T],
                 offsetgroup="evening-stack",
                 legendgroup="evening-stack"
@@ -188,33 +188,13 @@ for i, label in enumerate(time_labels_df_grouped_stacked_chart_T):
         clustered_data_df_grouped_stacked_chart_T.append(
             go.Bar(
                 name=label,
-                x=["During the week", "At the weekend"],
+                x=["Mon-Fri", "Sat-Sun"],
                 y=[during_val_df_grouped_stacked_chart_T, weekend_val_df_grouped_stacked_chart_T],
                 offsetgroup=str(i),
             )
         )
 
-# new database for Data-Table
-# Add 'level' column to distinguish rows
-# df['level'] = 'LSOA'
-# dfw['level'] = 'Ward'
-
-# Make sure columns are aligned (if needed, fill missing columns)
-# for col in df.columns:
-#     if col not in dfw.columns:
-#         dfw[col] = None
-# for col in dfw.columns:
-#     if col not in df.columns:
-#         df[col] = None
-
-# Reorder columns to be the same (use df.columns order)
-# dfw = dfw[df.columns]
-
-# Concatenate without renaming
-# df_dataframe = pd.concat([df, dfw], ignore_index=True)
-
-
-#TO DO inbouwen opties voor LSOA of ward
+# Get info that shows at the top right of the map
 def get_info(feature=None):
     header = [html.H4("London Burglary Count")]
     if not feature:
@@ -255,6 +235,7 @@ style_handle = assign("""function(feature, context){
     }
     return style;
 }""")
+
 # Create geojson.
 geojson = dl.GeoJSON(
     data=merged_json,  # url to geojson file
@@ -265,19 +246,13 @@ geojson = dl.GeoJSON(
     hideout=dict(colorscale=colorscale, classes=classes, style=style, colorProp="Predicted burglary count"),
     id="geojson",
 )
+
 # Create info control.
 info = html.Div(
     children=get_info(),
     id="info",
     className="info",
     style={"position": "absolute", "top": "10px", "right": "10px", "zIndex": "1000"},
-)
-
-# FOR SELECTION
-selected_geojson = dl.GeoJSON(
-    data={"type": "FeatureCollection", "features": []},
-    id="selected-geojson",
-    style=dict(weight=3, color="blue", dashArray="5,5", fillOpacity=0.3),
 )
 
 def get_code_from_feature(feature):
@@ -298,7 +273,7 @@ app.layout = html.Div([
         html.Div([
             dl.Map(
                 id='map',
-                children=[dl.TileLayer(), geojson, selected_geojson, colorbar, info],
+                children=[dl.TileLayer(), geojson, colorbar, info],
                 style={"height": "60vh", "width": "40vw"},
                 center=[51, 0],
                 zoom=10
@@ -331,14 +306,14 @@ app.layout = html.Div([
             dcc.Graph(id="graph")
         ], style={'width': '50%', 'display': 'inline-block', 'verticalAlign': 'top', 'padding': '10px'}),
     ]),
-    html.H2("Clustered Bar Chart: Time of Day Breakdown (Average per Day)"),
+    html.H2("Time of Day Breakdown (Average per Day 2013-2024)"),
     dcc.Graph(
         id='clustered-bar-chart',
         figure={
             'data': clustered_data_df_grouped_stacked_chart_T,
             'layout': go.Layout(
                 barmode='group',
-                xaxis={'title': 'Day Type'},
+                xaxis={'title': 'Day'},
                 yaxis={'title': 'Average Percentage per Day'},
                 legend={'x': 1, 'y': 1},
                 margin={'b': 100}
