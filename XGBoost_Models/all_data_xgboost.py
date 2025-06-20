@@ -125,7 +125,7 @@ def main():
         return np.mean(cv_scores)
 
     # Create and run the Optuna study
-    study = optuna.create_study(direction='minimize', name='XGBoost Hyperparameter Optimization')
+    study = optuna.create_study(direction='minimize', study_name='XGBoost Hyperparameter Optimization')
     study.optimize(objective, n_trials=50, show_progress_bar=True)
 
     print('Best hyperparameters:', study.best_params)
