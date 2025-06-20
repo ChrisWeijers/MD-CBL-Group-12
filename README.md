@@ -19,7 +19,7 @@ pip install -r requirements.txt
 ```
 3. **Download Police Data**:
 
-We used crime data from [data.police.uk](https://data.police.uk). Since the specific dataset used in this project is not directly downloadable in a single click from the website, we've made it available via Google Drive for convenience. 
+We used crime data from [data.police.uk](https://data.police.uk). Since the specific dataset used in this project is not directly downloadable in a single click from the website, we've made it available via Google Drive for convenience. Click the link and click on download all:
 
 [Download the data from Google Drive](https://drive.google.com/drive/folders/1_W5TvYWFbiOBpO7Yk_TZkhqYYyT6Q00b?usp=share_link) 
 
