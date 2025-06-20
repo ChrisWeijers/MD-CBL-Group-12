@@ -85,3 +85,10 @@ All data is preprocessed, cleaned, formatted and estimated in the `data/` direct
 ### 5. 📁visualizations: Burglary Visualizations
 - This directory contains some files which create visualizations. These visualizations are used for the report and presentations. 
 
+## Contributors
+- **Chris Weijers** - [@ChrisWeijers](https://github.com/ChrisWeijers)
+- **Henriks Meija** - [@hmeija](https://github.com/hmeija)
+- **Darrell Teurlings** - [@Timelordv123](https://github.com/Timelordv123)
+- **Lotte Bierman** - [@lmb0123](https://github.com/lmb0123)
+- **Nia Dimitrova** - [@NiaDimitrova](https://github.com/NiaDimitrova)
+- **Yong Jin Kwon** - [@YJ199212](https://github.com/YJ199212)
