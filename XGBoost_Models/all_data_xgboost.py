@@ -125,7 +125,7 @@ def main():
         return np.mean(cv_scores)
 
     # Create and run the Optuna study
-    study = optuna.create_study(direction='minimize')
+    study = optuna.create_study(direction='minimize', name='XGBoost Hyperparameter Optimization')
     study.optimize(objective, n_trials=50, show_progress_bar=True)
 
     print('Best hyperparameters:', study.best_params)
@@ -356,7 +356,7 @@ def main():
     print('Saving predictions...')
     forecast = pd.DataFrame(results)
     forecast = forecast.sort_values(["LSOA code 2021", "Year", "Month"])
-    forecast.to_csv(model_dir / "/lsoa_all_data_predictions.csv", index=False)
+    forecast.to_csv(model_dir / "lsoa_all_data_predictions.csv", index=False)
 
     # Load the mapping file and rename its columns
     mapping = pd.read_csv(data_dir / 'LSOA_changes/london_lsoa11_lsoa21_lad22_ward24.csv')
