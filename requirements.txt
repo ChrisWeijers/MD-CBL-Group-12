@@ -1,7 +1,5 @@
 pandas~=2.2.3
 geopandas~=1.0.1
-streamlit~=1.45.1
-pydeck~=0.9.1
 numpy~=2.2.5
 shapely~=2.1.0
 dash~=3.0.4
