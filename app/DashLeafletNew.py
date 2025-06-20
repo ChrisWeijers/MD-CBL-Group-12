@@ -1,6 +1,5 @@
 import webbrowser
 from threading import Timer
-
 import dash_leaflet as dl
 import dash_leaflet.express as dlx
 from dash_extensions.enrich import DashProxy, Input, Output, html

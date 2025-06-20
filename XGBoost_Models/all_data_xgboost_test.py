@@ -160,7 +160,7 @@ plt.show()
 # Add predictions to the test data and save to CSV
 test_data['Predicted Incident Count'] = y_pred
 test_data.rename(columns={'Predicted Incident Count': 'Predicted burglary count'}, inplace=True)
-# test_data.to_csv('lsoa_all_data_predictions.csv', index=False)
+test_data.to_csv('lsoa_test_predictions.csv', index=False)
 
 # Save the best model
 # best_model.save_model('all_data_xgboost_model.json')

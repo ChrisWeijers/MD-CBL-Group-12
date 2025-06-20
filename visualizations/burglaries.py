@@ -5,9 +5,13 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
+from pathlib import Path
+
+base_dir = Path(__file__).resolve().parent.parent
+print(base_dir)
 
 # Load the crimes data
-crimes = pd.read_csv('C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/Crimes/crimes_finalized.csv')
+crimes = pd.read_csv(base_dir / 'data/Crimes/crimes_finalized.csv')
 crimes = crimes[['LSOA code 2021', 'Year', 'Month', 'Burglary count']]
 
 # Ensure Year and Month are integers and build a datetime column
@@ -19,7 +23,7 @@ crimes['date'] = pd.to_datetime(crimes[['Year', 'Month']].assign(DAY=1))
 crimes = crimes[(crimes['date'] >= '2011-01-01') & (crimes['date'] <= '2025-02-01')]
 
 # Load and combine LSOA boundary shapefiles (one per LAD)
-shp_folder = "C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/data/LSOA_boundaries/LB_shp"
+shp_folder = base_dir / "data/LSOA_boundaries/LB_shp"
 shp_files = glob.glob(os.path.join(shp_folder, "*.shp"))
 gdf_list = [gpd.read_file(shp_file) for shp_file in shp_files]
 gdf = gpd.GeoDataFrame(pd.concat(gdf_list, ignore_index=True))
@@ -29,7 +33,7 @@ gdf = gdf.rename(columns={'lsoa21cd': 'LSOA code 2021'})
 all_months = pd.date_range(start='2011-01-01', end='2025-02-01', freq='MS')
 
 # Create an output directory for saved plots
-output_dir = "C:/Users/20231441/OneDrive - TU Eindhoven/Documents/GitHub/MD-CBL-Group-12/visualizations/Burglaries per month/burglary plots"
+output_dir = "burglary plots"
 os.makedirs(output_dir, exist_ok=True)
 
 # For each month, merge crimes with geo data and plot
