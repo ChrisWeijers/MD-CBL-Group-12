@@ -51,6 +51,9 @@ population_density.main()
 import data.Precipitation.precipitation as precipitation
 print('Preparing Precipitation...')
 precipitation.main()
+import data.Smoothed_burglaries.smoothed_burglaries as smoothed_burglaries
+print('Preparing Smoothed burglaries...')
+smoothed_burglaries.main()
 import data.Standard_Deviation.std as std
 print('Preparing standard deviation...')
 std.main()

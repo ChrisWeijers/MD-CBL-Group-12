@@ -31,7 +31,7 @@ landuse = pd.read_csv(data_dir / 'Land_use/landuse_finalized.csv')
 population = pd.read_csv(data_dir / 'Population/population_finalized.csv')
 population_density = pd.read_csv(data_dir / 'Population_density/population_density_finalized.csv')
 precipitation = pd.read_csv(data_dir / 'Precipitation/precipitation_finalized.csv')
-smoothed_burglaries = pd.read_csv(data_dir / 'Smoothed burglaries/smoothed_burglaries_finalized.csv')
+smoothed_burglaries = pd.read_csv(data_dir / 'Smoothed_burglaries/smoothed_burglaries_finalized.csv')
 standard_deviation = pd.read_csv(data_dir / 'Standard_deviation/rolling_std_finalized.csv')
 time_encoding = pd.read_csv(data_dir / 'Time_encoding/time_encoding_finalized.csv')
 

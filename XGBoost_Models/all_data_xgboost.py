@@ -40,7 +40,7 @@ def main():
     population = pd.read_csv(data_dir / 'Population/population_finalized.csv')
     population_density = pd.read_csv(data_dir / 'Population_density/population_density_finalized.csv')
     precipitation = pd.read_csv(data_dir / 'Precipitation/precipitation_finalized.csv')
-    smoothed_burglaries = pd.read_csv(data_dir / 'Smoothed burglaries/smoothed_burglaries_finalized.csv')
+    smoothed_burglaries = pd.read_csv(data_dir / 'Smoothed_burglaries/smoothed_burglaries_finalized.csv')
     standard_deviation = pd.read_csv(data_dir / 'Standard_deviation/rolling_std_finalized.csv')
     time_encoding = pd.read_csv(data_dir / 'Time_encoding/time_encoding_finalized.csv')
 
@@ -343,9 +343,9 @@ def main():
         smoothed_6  = get_smoothed_value(hist_df, dt, row["LSOA code 2021"], 6, code_to_index, neighbor_dict, index_to_code)
         smoothed_12 = get_smoothed_value(hist_df, dt, row["LSOA code 2021"], 12, code_to_index, neighbor_dict, index_to_code)
 
-        row_dict["Smoothed burglaries (3 months)"]  = smoothed_3
-        row_dict["Smoothed burglaries (6 months)"]  = smoothed_6
-        row_dict["Smoothed burglaries (12 months)"] = smoothed_12
+        row_dict["Smoothed_burglaries (3 months)"]  = smoothed_3
+        row_dict["Smoothed_burglaries (6 months)"]  = smoothed_6
+        row_dict["Smoothed_burglaries (12 months)"] = smoothed_12
 
         results.append(row_dict)
 
