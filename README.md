@@ -23,9 +23,9 @@ We used crime data from [data.police.uk](https://data.police.uk). Since the spec
 
 [Download the data from Google Drive](https://drive.google.com/drive/folders/1_W5TvYWFbiOBpO7Yk_TZkhqYYyT6Q00b?usp=share_link) 
 
-After downloading, place the file in the following directory, and ensist it has the name 'Original Dataset':
+After downloading, place the folder in the following directory, and ensist it has the name 'Original Dataset':
 ```bash
-data/Crimes/
+data/Crimes/Original Dataset
 ```
 4. **Download Land Use Data**:
 
@@ -33,9 +33,9 @@ The files used for the 'Land Use' data from [Geofabrik](https://download.geofabr
 
 [Download the data from Geofabrik](https://download.geofabrik.de/europe/united-kingdom/england/greater-london-latest-free.shp.zip) 
 
-After downloading, place the file in the following directory, and ensist it has the name 'Original Dataset':
+After downloading, place the folder in the following directory, and ensist it has the name 'greater-london-latest-free.shp':
 ```bash
-data/Land_use/
+data/Land_use/greater-london-latest-free.shp
 ```
 You are now fully set to run the project!
 ## Running the project
