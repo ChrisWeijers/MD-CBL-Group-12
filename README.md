@@ -44,7 +44,7 @@ To run all components of the project, including data gathering, processing, clea
 ```bash
 python run.py
 ```
-This will take roughly 30-45 minutes, and automatically opens the dashboard. 
+This will take roughly 45-75 minutes, and automatically opens the dashboard. 
 
 ## Scripts Overview
 
